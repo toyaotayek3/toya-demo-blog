@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur Fiches Arrondis (Avec Subdivisions)</title>
+    <style>
+        /* --- IMPORT FONTS --- */
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap');
+
+        /* --- VARIABLES --- */
+        :root {
+            --primary: #2c3e50;
+            --entier: #27ae60;
+            --decimal: #8e44ad;
+            --bg: #eef2f3;
+            --example-bg: #fffde7;
+            --example-border: #fbc02d;
+            --danger: #c0392b;
+        }
+
+        /* --- GLOBAL STYLES --- */
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1, h2, h3 { margin: 0; }
+
+        /* --- CONFIGURATION PANEL --- */
+        .config-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 30px;
+            border-top: 5px solid var(--primary);
+        }
+
+        .config-header { text-align: center; margin-bottom: 20px; }
+        .config-header h2 { color: var(--primary); }
+
+        .columns-container { display: flex; gap: 20px; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 300px; background: #fafafa; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
+        
+        .col h3 { 
+            padding-bottom: 10px; margin-bottom: 15px; border-bottom: 2px solid #ddd; font-size: 1.2em;
+        }
+        .col-entier h3 { color: var(--entier); border-color: var(--entier); }
+        .col-decimal h3 { color: var(--decimal); border-color: var(--decimal); }
+
+        .sub-cat { margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+        .sub-cat:last-child { border-bottom: none; }
+        .cat-label { font-weight: 600; display: block; margin-bottom: 5px; color: #555; }
+
+        .input-row { display: flex; justify-content: space-between; gap: 10px; }
+        .input-group { display: flex; flex-direction: column; width: 48%; }
+        .input-group label { font-size: 0.8em; color: #777; margin-bottom: 2px; }
+        input[type="number"] { padding: 5px; border: 1px solid #ccc; border-radius: 5px; text-align: center; font-family: 'Courier Prime'; font-weight: bold; }
+
+        .actions { margin-top: 20px; text-align: center; padding-top: 15px; border-top: 1px solid #eee; }
+        .btn {
+            padding: 10px 25px; border: none; border-radius: 50px; font-size: 1em; cursor: pointer;
+            color: white; font-weight: bold; margin: 0 10px; transition: transform 0.2s;
+        }
+        .btn-gen { background-color: var(--primary); }
+        .btn-print { background-color: #e67e22; }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        label.checkbox-label { font-size: 0.95em; cursor: pointer; display: inline-flex; align-items: center; margin-right: 20px; }
+        label.checkbox-label input { margin-right: 8px; transform: scale(1.2); }
+
+        /* --- A4 SHEET STYLES --- */
+        .sheet {
+            background: white;
+            width: 210mm;
+            min-height: 297mm; /* Hauteur minimale A4 */
+            padding: 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .sheet-header {
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 15px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: flex-end;
+        }
+        .sheet-title { font-size: 1.5em; color: var(--primary); font-weight: bold; }
+        .student-info { font-family: 'Courier Prime'; font-size: 0.9em; text-align: right; line-height: 1.5; color: #555; }
+
+        .section-block { margin-bottom: 25px; page-break-inside: avoid; }
+        .section-title {
+            background: #f4f6f7; color: var(--primary); padding: 5px 10px;
+            font-weight: bold; border-left: 5px solid var(--primary); margin-bottom: 10px;
+        }
+        /* Couleurs dynamiques pour les titres de section via JS ou classes */
+        .section-entier .section-title { border-color: var(--entier); color: var(--entier); background: #eafaf1; }
+        .section-decimal .section-title { border-color: var(--decimal); color: var(--decimal); background: #f5eef8; }
+
+        /* --- EXEMPLE --- */
+        .example-box {
+            background-color: var(--example-bg);
+            border: 2px solid var(--example-border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .example-tag {
+            position: absolute; top: -10px; left: 10px;
+            background: var(--example-border); color: #444;
+            font-size: 0.7em; padding: 2px 8px; border-radius: 4px; font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* --- EXERCICE ROW --- */
+        .exercise-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dotted #eee;
+        }
+        .exercise-row:last-child { border-bottom: none; margin-bottom: 0; }
+
+        .question { width: 35%; font-size: 1.1em; }
+        .question strong { font-family: 'Courier Prime'; font-size: 1.2em; }
+        
+        .answer-box {
+            display: inline-block; width: 70px; height: 30px; border: 2px solid #aaa;
+            border-radius: 5px; vertical-align: middle; margin-left: 10px; background: #fff;
+        }
+        .correction-val {
+            font-family: 'Courier Prime'; color: var(--danger); font-weight: bold; font-size: 1.2em; margin-left: 10px;
+        }
+
+        /* --- DROITE NUMÉRIQUE --- */
+        .graphic-part { flex: 1; padding-left: 20px; }
+        .number-line-container {
+            position: relative; width: 100%; height: 50px; margin-top: 5px;
+        }
+        
+        /* La ligne */
+        .nl-line {
+            position: absolute; top: 40%; left: 0; right: 0; height: 2px; background: #333; z-index: 1;
+        }
+
+        /* Les graduations (Ticks) */
+        .tick { position: absolute; background: #333; transform: translateX(-50%); z-index: 2; }
+        
+        .tick.major { height: 14px; top: 25%; width: 2px; background: #000; } /* Début et fin */
+        .tick.mid { height: 10px; top: 30%; width: 2px; } /* Milieu */
+        .tick.minor { height: 5px; top: 38%; width: 1px; background: #777; } /* Subdivisions */
+
+        /* Les étiquettes sous la droite */
+        .nl-label {
+            position: absolute; top: 65%; transform: translateX(-50%);
+            font-family: 'Courier Prime'; font-size: 0.8em; color: #333;
+        }
+        .nl-box-empty {
+            width: 30px; height: 16px; border: 1px dashed #999; background: white; display: block;
+        }
+
+        /* Marqueur de correction (Flèche) */
+        .corr-mark {
+            position: absolute; top: -5px; transform: translateX(-50%);
+            color: var(--danger); font-weight: bold; font-size: 18px; line-height: 1; z-index: 10;
+            text-align: center;
+        }
+        .corr-mark span { display: block; font-size: 10px; font-family: 'Courier Prime'; margin-top: -2px;}
+
+        /* --- PRINT MEDIA QUERIES --- */
+        @media print {
+            body { background: none; padding: 0; display: block; }
+            .config-panel { display: none; }
+            .sheet {
+                box-shadow: none; margin: 0; width: 100%; padding: 10mm;
+                page-break-after: always;
+            }
+            .sheet:last-child { page-break-after: auto; }
+            .page-break { page-break-before: always; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PANNEAU DE CONFIGURATION -->
+    <div class="config-panel">
+        <div class="config-header">
+            <h2>🖨️ Générateur : Droites Graduées & Arrondis</h2>
+            <p>Créez des fiches sur mesure avec subdivisions pour aider vos élèves à visualiser les arrondis.</p>
+        </div>
+
+        <div class="columns-container">
+            <!-- Colonne Entiers -->
+            <div class="col col-entier">
+                <h3>123 Entiers</h3>
+                
+                <div class="sub-cat">
+                    <span class="cat-label">Arrondir à la Dizaine</span>
+                    <div class="input-row">
+                        <div class="input-group"><label>Avec bornes</label><input type="number" id="int-10-w" min="0" value="2"></div>
+                        <div class="input-group"><label>Sans bornes</label><input type="number" id="int-10-wo" min="0" value="1"></div>
+                    </div>
+                </div>
+
+                <div class="sub-cat">
+                    <span class="cat-label">Arrondir à la Centaine</span>
+                    <div class="input-row">
+                        <div class="input-group"><label>Avec bornes</label><input type="number" id="int-100-w" min="0" value="0"></div>
+                        <div class="input-group"><label>Sans bornes</label><input type="number" id="int-100-wo" min="0" value="0"></div>
+                    </div>
+                </div>
+
+                <div class="sub-cat">
+                    <span class="cat-label">Arrondir au Millier</span>
+                    <div class="input-row">
+                        <div class="input-group"><label>Avec bornes</label><input type="number" id="int-1000-w" min="0" value="0"></div>
+                        <div class="input-group"><label>Sans bornes</label><input type="number" id="int-1000-wo" min="0" value="0"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne Décimaux -->
+            <div class="col col-decimal">
+                <h3>12,3 Décimaux</h3>
+
+                <div class="sub-cat">
+                    <span class="cat-label">Arrondir à l'Unité</span>
+                    <div class="input-row">
+                        <div class="input-group"><label>Avec bornes</label><input type="number" id="dec-1-w" min="0" value="2"></div>
+                        <div class="input-group"><label>Sans bornes</label><input type="number" id="dec-1-wo" min="0" value="1"></div>
+                    </div>
+                </div>
+
+                <div class="sub-cat">
+                    <span class="cat-label">Arrondir au Dixième</span>
+                    <div class="input-row">
+                        <div class="input-group"><label>Avec bornes</label><input type="number" id="dec-01-w" min="0" value="0"></div>
+                        <div class="input-group"><label>Sans bornes</label><input type="number" id="dec-01-wo" min="0" value="0"></div>
+                    </div>
+                </div>
+
+                <div class="sub-cat">
+                    <span class="cat-label">Arrondir au Centième</span>
+                    <div class="input-row">
+                        <div class="input-group"><label>Avec bornes</label><input type="number" id="dec-001-w" min="0" value="0"></div>
+                        <div class="input-group"><label>Sans bornes</label><input type="number" id="dec-001-wo" min="0" value="0"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <label class="checkbox-label">
+                <input type="checkbox" id="chk-correction" checked> Générer la correction
+            </label>
+            <button class="btn btn-gen" onclick="generateSheets()">⚡ Générer la fiche</button>
+            <button class="btn btn-print" onclick="window.print()">🖨️ Imprimer</button>
+        </div>
+    </div>
+
+    <!-- ZONE DE RENDU -->
+    <div id="output-area"></div>
+
+    <script>
+        // --- CONFIGURATION DATA ---
+        const CONFIG = [
+            { id: 'int-10',   type: 'int', prec: 10,   title: "Arrondir à la Dizaine la plus proche", class: 'section-entier' },
+            { id: 'int-100',  type: 'int', prec: 100,  title: "Arrondir à la Centaine la plus proche", class: 'section-entier' },
+            { id: 'int-1000', type: 'int', prec: 1000, title: "Arrondir au Millier le plus proche", class: 'section-entier' },
+            { id: 'dec-1',    type: 'dec', prec: 1,    title: "Arrondir à l'Unité la plus proche", class: 'section-decimal' },
+            { id: 'dec-01',   type: 'dec', prec: 0.1,  title: "Arrondir au Dixième le plus proche", class: 'section-decimal' },
+            { id: 'dec-001',  type: 'dec', prec: 0.01, title: "Arrondir au Centième le plus proche", class: 'section-decimal' }
+        ];
+
+        // --- MATH UTILS ---
+        
+        // Formatte un nombre pour l'affichage (remplace point par virgule)
+        function formatNum(n) {
+            return n.toString().replace('.', ',');
+        }
+
+        // Génère un nombre aléatoire adapté
+        function generateNumber(type, prec) {
+            let num;
+            let safety = 0;
+            do {
+                if (type === 'int') {
+                    // Pour entier: min = précision, max = précision * 10
+                    let min = prec; 
+                    let max = prec * 10;
+                    if(prec === 1000) max = 9999;
+                    num = Math.floor(Math.random() * (max - min + 1)) + min;
+                } else {
+                    // Pour décimal : on travaille avec des entiers puis on divise
+                    let factor = 1 / prec; // ex: si prec 0.1, factor = 10
+                    let min = 10; // ex: 1.0
+                    let max = 100; // ex: 10.0
+                    if (prec === 1) { min = 10; max = 99; factor = 1; } // Unités : 10 à 99
+                    if (prec === 0.1) { min = 100; max = 1000; factor = 10; } // 10.0 à 100.0
+                    if (prec === 0.01) { min = 1000; max = 10000; factor = 100; } // 10.00 à 100.00
+                    
+                    let raw = Math.floor(Math.random() * (max - min)) + min;
+                    num = raw / factor;
+                }
+                safety++;
+            } while (
+                // Eviter les nombres pile au milieu (ex: 5, 150, 1.5) ou déjà ronds
+                ((num % prec === prec / 2) || (num % prec === 0)) && safety < 100
+            );
+            return parseFloat(num.toFixed(10)); // Nettoie les erreurs float js
+        }
+
+        // --- GENERATION ---
+
+        function generateSheets() {
+            const output = document.getElementById('output-area');
+            output.innerHTML = ''; // Clear previous
+
+            // 1. Récupérer les inputs et préparer les données
+            let tasks = [];
+            let hasAnyTask = false;
+
+            CONFIG.forEach(cat => {
+                const countW = parseInt(document.getElementById(`${cat.id}-w`).value) || 0;
+                const countWO = parseInt(document.getElementById(`${cat.id}-wo`).value) || 0;
+
+                if (countW + countWO > 0) {
+                    hasAnyTask = true;
+                    let group = { meta: cat, items: [] };
+                    
+                    // Toujours un exemple
+                    group.items.push({ val: generateNumber(cat.type, cat.prec), mode: 'example' });
+
+                    for(let i=0; i<countW; i++) group.items.push({ val: generateNumber(cat.type, cat.prec), mode: 'with-bounds' });
+                    for(let i=0; i<countWO; i++) group.items.push({ val: generateNumber(cat.type, cat.prec), mode: 'no-bounds' });
+
+                    tasks.push(group);
+                }
+            });
+
+            if (!hasAnyTask) {
+                alert("Veuillez choisir au moins un exercice dans le panneau de configuration.");
+                return;
+            }
+
+            // 2. Générer la feuille Élève
+            const studentSheet = createSheetHTML(tasks, false);
+            output.appendChild(studentSheet);
+
+            // 3. Générer la feuille Correction (si cochée)
+            if (document.getElementById('chk-correction').checked) {
+                const corrSheet = createSheetHTML(tasks, true);
+                corrSheet.classList.add('page-break'); // CSS pour impression
+                output.appendChild(corrSheet);
+            }
+        }
+
+        function createSheetHTML(tasks, isCorrection) {
+            const sheet = document.createElement('div');
+            sheet.className = 'sheet';
+
+            let title = isCorrection ? "Correction des Arrondis" : "Exercices : Les Arrondis";
+            
+            let html = `
+                <div class="sheet-header">
+                    <div>
+                        <div class="sheet-title">${title}</div>
+                        <div style="color:#666; font-size:0.9em; margin-top:5px;">
+                            ${isCorrection ? 'Vérifie tes réponses et la position de la flèche rouge.' : 'Place le nombre sur la droite graduée et complète la phrase.'}
+                        </div>
+                    </div>
+                    <div class="student-info">
+                        Nom : ...........................<br>
+                        Date : ..... / ..... / ..........<br>
+                        Classe : ........................
+                    </div>
+                </div>
+            `;
+
+            tasks.forEach(group => {
+                html += `<div class="section-block ${group.meta.class}">`;
+                html += `<div class="section-title">➜ ${group.meta.title}</div>`;
+
+                group.items.forEach((item, index) => {
+                    const isExample = item.mode === 'example';
+                    // Si c'est correction, on ne réaffiche pas l'exemple (optionnel, ici on l'affiche pour clarté ou on le grise)
+                    // Pour ce prompt, on l'affiche style "exemple"
+                    
+                    html += renderRow(item.val, group.meta, item.mode, isCorrection, index, isExample);
+                });
+
+                html += `</div>`;
+            });
+
+            sheet.innerHTML = html;
+            return sheet;
+        }
+
+        function renderRow(num, meta, mode, isCorrection, index, isExample) {
+            const prec = meta.prec;
+            
+            // Calcul des bornes
+            let lower, upper, rounded;
+            
+            if (meta.type === 'int') {
+                lower = Math.floor(num / prec) * prec;
+                upper = lower + prec;
+            } else {
+                // Astuce pour float JS : multiplier, floor, diviser
+                let m = Math.round(1/prec); // Multiplicateur (10, 100, 1)
+                if(prec === 1) m = 1;
+                lower = Math.floor(num * m) / m;
+                upper = (Math.floor(num * m) + 1) / m; // +1 unité de precision
+                // Fix precision float
+                lower = parseFloat(lower.toFixed(10));
+                upper = parseFloat(upper.toFixed(10));
+            }
+            const mid = (lower + upper) / 2;
+            
+            // Calcul de l'arrondi correct
+            let distLow = num - lower;
+            let distHigh = upper - num;
+            rounded = (distLow < distHigh) ? lower : upper;
+
+            // --- VISUEL ---
+
+            // Étiquettes sous la droite
+            const showBounds = (mode === 'with-bounds' || mode === 'example' || isCorrection);
+            const lblStart = showBounds ? formatNum(lower) : '<span class="nl-box-empty"></span>';
+            const lblEnd   = showBounds ? formatNum(upper) : '<span class="nl-box-empty"></span>';
+            // Le milieu : on l'affiche en gris si mode 'with-bounds', ou vide
+            const lblMid   = showBounds ? formatNum(mid) : '<span class="nl-box-empty" style="border-style:dotted"></span>';
+
+            // Réponse
+            let answerBlock;
+            if (isExample || isCorrection) {
+                answerBlock = `<span class="correction-val">→ ${formatNum(rounded)}</span>`;
+            } else {
+                answerBlock = `<div class="answer-box"></div>`;
+            }
+
+            // Marqueur correction (Flèche)
+            let markHtml = '';
+            if (isExample || isCorrection) {
+                let percent = ((num - lower) / (upper - lower)) * 100;
+                markHtml = `<div class="corr-mark" style="left: ${percent}%">
+                                ▼<br><span>${formatNum(num)}</span>
+                            </div>`;
+            }
+
+            // Subdivisions (Les petits traits)
+            let ticksHtml = '';
+            // On veut 9 traits intermédiaires (10%, 20%... 90%). 
+            // 50% est géré par .mid
+            for(let i=1; i<10; i++) {
+                if (i===5) continue;
+                ticksHtml += `<div class="tick minor" style="left:${i*10}%"></div>`;
+            }
+
+            // Conteneur
+            let containerClass = isExample ? 'example-box' : 'exercise-row';
+            let tag = isExample ? '<div class="example-tag">Exemple</div>' : '';
+            let qNum = isExample ? '' : `<strong>${index}.</strong> `;
+
+            return `
+            <div class="${containerClass}">
+                ${tag}
+                <div class="question">
+                    ${qNum}Arrondis <strong>${formatNum(num)}</strong> : ${answerBlock}
+                </div>
+                <div class="graphic-part">
+                    <div class="number-line-container">
+                        <div class="nl-line"></div>
+                        
+                        <!-- Ticks Principaux -->
+                        <div class="tick major" style="left:0%"></div>
+                        <div class="tick mid" style="left:50%"></div>
+                        <div class="tick major" style="left:100%"></div>
+
+                        <!-- Subdivisions -->
+                        ${ticksHtml}
+
+                        <!-- Labels -->
+                        <div class="nl-label" style="left:0%">${lblStart}</div>
+                        <div class="nl-label" style="left:50%; color:#777">${lblMid}</div>
+                        <div class="nl-label" style="left:100%">${lblEnd}</div>
+
+                        <!-- Correction Mark -->
+                        ${markHtml}
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+    </script>
+</body>
+</html>

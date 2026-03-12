@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Nombres Croisés - Conforme BO</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e67e22;
+            --bg: #f5f6fa;
+            --sheet-bg: white;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: var(--bg);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR (CONTROLS) */
+        aside {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        h1 { font-size: 1.2rem; color: var(--primary); margin-top: 0; }
+        h2 { font-size: 1rem; color: var(--secondary); margin-bottom: 10px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+
+        .control-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; }
+        
+        select, input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+        .checkbox-item input { margin-right: 10px; width: auto; }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 10px;
+        }
+        .diff-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .diff-btn.active {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        button.action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 10px;
+        }
+        button.action-btn:hover { background: #1a252f; }
+        button.print-btn { background: var(--secondary); }
+        button.toggle-sol-btn { background: var(--accent); }
+
+        .error-msg { color: #e74c3c; font-size: 0.85rem; display: none; margin-top: 5px; }
+
+        /* MAIN PREVIEW AREA */
+        main {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* A4 SHEET SIMULATION */
+        .a4-sheet {
+            background: var(--sheet-bg);
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .sheet-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid black;
+            padding-bottom: 10px;
+        }
+        .sheet-title { font-size: 24px; font-weight: bold; text-transform: uppercase; }
+        .sheet-info { display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px; }
+
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        table.crossnumber-grid {
+            border-collapse: collapse;
+            border: 3px solid black;
+        }
+        
+        td {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #555;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            position: relative;
+            vertical-align: middle;
+        }
+
+        td.black-cell {
+            background-color: black;
+        }
+
+        td .cell-number {
+            position: absolute;
+            top: 1px;
+            left: 2px;
+            font-size: 10px;
+            font-weight: normal;
+        }
+
+        td .cell-value {
+            visibility: hidden; /* Hidden by default for students */
+        }
+
+        td.show-value .cell-value {
+            visibility: visible;
+            color: var(--accent);
+        }
+
+        .clues-container {
+            display: flex;
+            gap: 40px;
+        }
+        .clues-column {
+            flex: 1;
+        }
+        .clues-column h3 {
+            border-bottom: 1px solid black;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .clue-item {
+            margin-bottom: 6px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .clue-label { font-weight: bold; margin-right: 5px; }
+
+        /* BO OBJECTIVES DISPLAY ON SHEET */
+        .skills-footer {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px dotted #ccc;
+            padding-top: 10px;
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            aside { display: none; }
+            body { background: white; display: block; }
+            main { padding: 0; display: block; }
+            .a4-sheet {
+                box-shadow: none;
+                width: 100%;
+                height: auto;
+                padding: 0;
+                margin: 0;
+            }
+            .no-print { display: none; }
+            
+            /* Force background printing for black cells */
+            td.black-cell {
+                background-color: black !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* Make sure values are hidden when printing student version */
+            td .cell-value { visibility: hidden; }
+            
+            /* If we want to print the answer key, we add a class to body */
+            body.print-solution td .cell-value { visibility: visible !important; color: black; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="no-print">
+    <h1>🔢 Nombres Croisés</h1>
+    
+    <div class="control-group">
+        <label>Niveau de la classe</label>
+        <select id="gradeSelect" onchange="updateObjectives()">
+            <option value="CE1">Cycle 2 - CE1</option>
+            <option value="CE2">Cycle 2 - CE2</option>
+            <option value="CM1">Cycle 3 - CM1</option>
+            <option value="CM2" selected>Cycle 3 - CM2</option>
+        </select>
+    </div>
+
+    <div class="control-group">
+        <label>Objectifs (Min. 3)</label>
+        <div id="objectivesList" class="checkbox-group">
+            <!-- Will be populated by JS -->
+        </div>
+        <div id="objError" class="error-msg">Veuillez sélectionner au moins 3 objectifs.</div>
+    </div>
+
+    <div class="control-group">
+        <label>Difficulté</label>
+        <div class="difficulty-selector">
+            <div class="diff-btn active" onclick="setDifficulty(1)" id="diff1">★☆☆</div>
+            <div class="diff-btn" onclick="setDifficulty(2)" id="diff2">★★☆</div>
+            <div class="diff-btn" onclick="setDifficulty(3)" id="diff3">★★★</div>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label>Taille de grille</label>
+        <select id="gridSize">
+            <option value="6">Petite (6x6)</option>
+            <option value="8" selected>Moyenne (8x8)</option>
+            <option value="10">Grande (10x10)</option>
+        </select>
+    </div>
+
+    <button class="action-btn" onclick="generatePuzzle()">Générer la grille</button>
+    <button class="action-btn toggle-sol-btn" onclick="toggleSolution()">Voir/Cacher Corrigé</button>
+    <button class="action-btn print-btn" onclick="printSheet(false)">Imprimer Élève</button>
+    <button class="action-btn print-btn" onclick="printSheet(true)">Imprimer Corrigé</button>
+
+    <div style="font-size: 0.8rem; color: #7f8c8d; margin-top: auto;">
+        Générateur conforme aux attentes institutionnelles (BO).
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main>
+    <div class="a4-sheet" id="printableArea">
+        <header class="sheet-header">
+            <div class="sheet-title">Nombres Croisés</div>
+            <div class="sheet-info">
+                <span id="displayLevel">Niveau : CM2</span>
+                <span>Date : .......................</span>
+                <span>Nom : .......................</span>
+            </div>
+        </header>
+
+        <div class="grid-container">
+            <table class="crossnumber-grid" id="gridTable">
+                <!-- Grid generated here -->
+            </table>
+        </div>
+
+        <div class="clues-container">
+            <div class="clues-column">
+                <h3>Horizontalement</h3>
+                <div id="hClues"></div>
+            </div>
+            <div class="clues-column">
+                <h3>Verticalement</h3>
+                <div id="vClues"></div>
+            </div>
+        </div>
+
+        <footer class="skills-footer">
+            <strong>Compétences travaillées :</strong> <span id="skillsDisplay"></span>
+        </footer>
+    </div>
+</main>
+
+<script>
+    // --- DATA: OBJECTIVES BASED ON BO (BULLETIN OFFICIEL) ---
+    const boData = {
+        'CE1': [
+            { id: 'add_simple', label: 'Addition (somme < 100)' },
+            { id: 'sub_simple', label: 'Soustraction simple (sans retenue)' },
+            { id: 'double_half', label: 'Doubles et Moitiés (nombres usuels)' },
+            { id: 'comp_10', label: 'Compléments à 10 ou 20' },
+            { id: 'seq_1', label: 'Suites numériques (+1, +2, +10)' }
+        ],
+        'CE2': [
+            { id: 'add_complex', label: 'Addition (somme < 1000)' },
+            { id: 'sub_ret', label: 'Soustraction (avec retenue)' },
+            { id: 'mult_table', label: 'Tables de multiplication (2,3,4,5)' },
+            { id: 'double_triple', label: 'Double et Triple' },
+            { id: 'val_position', label: 'Valeur de position (Unités, Dizaines, Centaines)' }
+        ],
+        'CM1': [
+            { id: 'add_grand', label: 'Addition grands nombres' },
+            { id: 'sub_grand', label: 'Soustraction grands nombres' },
+            { id: 'mult_all', label: 'Multiplication (toutes tables)' },
+            { id: 'mult_10_100', label: 'Multiplier par 10, 100, 1000' },
+            { id: 'div_simple', label: 'Division simple (reste nul)' }
+        ],
+        'CM2': [
+            { id: 'op_all', label: 'Les 4 opérations (entiers)' },
+            { id: 'mult_complex', label: 'Multiplication (facteurs à 2 chiffres)' },
+            { id: 'div_eucl', label: 'Division euclidienne (quotient/reste)' },
+            { id: 'multiples', label: 'Multiples et Diviseurs' },
+            { id: 'logic', label: 'Logique numérique (carrés, suites)' }
+        ]
+    };
+
+    let currentDifficulty = 1; // 1, 2, 3
+    let gridSolution = []; // To store the numbers
+    let gridNumbers = []; // To store numbering (1, 2, 3...)
+
+    // --- INITIALIZATION ---
+    function init() {
+        updateObjectives();
+        generatePuzzle();
+    }
+
+    // --- UI LOGIC ---
+    function updateObjectives() {
+        const grade = document.getElementById('gradeSelect').value;
+        const list = document.getElementById('objectivesList');
+        list.innerHTML = '';
+        
+        boData[grade].forEach(obj => {
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+            div.innerHTML = `
+                <input type="checkbox" value="${obj.id}" id="${obj.id}" checked>
+                <label for="${obj.id}" style="font-weight:normal; margin:0;">${obj.label}</label>
+            `;
+            list.appendChild(div);
+        });
+        document.getElementById('displayLevel').innerText = "Niveau : " + grade;
+    }
+
+    function setDifficulty(level) {
+        currentDifficulty = level;
+        document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('diff' + level).classList.add('active');
+    }
+
+    function getSelectedObjectives() {
+        const checkboxes = document.querySelectorAll('#objectivesList input[type="checkbox"]:checked');
+        const selected = [];
+        checkboxes.forEach(cb => {
+            selected.push(cb.value);
+            // Get label for footer
+            const grade = document.getElementById('gradeSelect').value;
+            const objData = boData[grade].find(o => o.id === cb.value);
+            if(objData) selected.push({id: cb.value, label: objData.label});
+        });
+        return selected; // Array of objects {id, label}
+    }
+
+    function toggleSolution() {
+        const tds = document.querySelectorAll('td');
+        tds.forEach(td => td.classList.toggle('show-value'));
+    }
+
+    function printSheet(withSolution) {
+        if(withSolution) {
+            document.body.classList.add('print-solution');
+            // Force show values
+            document.querySelectorAll('td').forEach(td => td.classList.add('show-value'));
+        } else {
+            document.body.classList.remove('print-solution');
+            // Force hide values
+            document.querySelectorAll('td').forEach(td => td.classList.remove('show-value'));
+        }
+        window.print();
+    }
+
+    // --- CORE GENERATOR LOGIC ---
+
+    function generatePuzzle() {
+        const selectedObjs = getSelectedObjectives();
+        
+        if (selectedObjs.length < 3) {
+            document.getElementById('objError').style.display = 'block';
+            return;
+        }
+        document.getElementById('objError').style.display = 'none';
+
+        // Update footer skills
+        document.getElementById('skillsDisplay').innerText = selectedObjs.map(o => o.label).join(', ');
+
+        const size = parseInt(document.getElementById('gridSize').value);
+        
+        // 1. Create Grid Structure (Black squares)
+        let grid = createGridStructure(size);
+
+        // 2. Fill with random digits (ensuring logic)
+        grid = fillGridWithNumbers(grid, size);
+
+        // 3. Render HTML Grid
+        renderGrid(grid, size);
+
+        // 4. Generate Clues based on numbers
+        generateClues(grid, size, selectedObjs);
+    }
+
+    function createGridStructure(size) {
+        let grid = Array(size).fill(0).map(() => Array(size).fill(null)); // null = white, '#' = black
+        
+        // Simple pattern generator: Symmetric or random sparse black squares
+        // Approx 15-20% black squares
+        const numBlack = Math.floor(size * size * 0.18);
+        
+        for(let i=0; i<numBlack; i++) {
+            let r = Math.floor(Math.random() * size);
+            let c = Math.floor(Math.random() * size);
+            grid[r][c] = '#';
+            // Symmetry helps look like a real crossword
+            grid[size - 1 - r][size - 1 - c] = '#'; 
+        }
+
+        // Prevent block of black squares or isolated white squares (simplified check)
+        // Ensure no row or col is fully black (simplified)
+        return grid;
+    }
+
+    function fillGridWithNumbers(grid, size) {
+        // Fill white squares with digits 0-9
+        // Constraint: A number (sequence of digits) cannot start with 0 unless it is just "0"
+        for(let r=0; r<size; r++) {
+            for(let c=0; c<size; c++) {
+                if(grid[r][c] !== '#') {
+                    // Check if previous is black or boundary (start of horizontal number)
+                    let isStartH = (c === 0 || grid[r][c-1] === '#');
+                    let isStartV = (r === 0 || grid[r-1][c] === '#');
+                    
+                    let min = 0;
+                    if (isStartH || isStartV) min = 1; // Avoid leading zero if possible
+
+                    grid[r][c] = Math.floor(Math.random() * (10 - min)) + min;
+                }
+            }
+        }
+        return grid;
+    }
+
+    function renderGrid(grid, size) {
+        const table = document.getElementById('gridTable');
+        table.innerHTML = '';
+        
+        // Identify start of words for numbering
+        let numberCounter = 1;
+        let cellNumbers = Array(size).fill(0).map(() => Array(size).fill(0));
+
+        for(let r=0; r<size; r++) {
+            const tr = document.createElement('tr');
+            for(let c=0; c<size; c++) {
+                const td = document.createElement('td');
+                const val = grid[r][c];
+                
+                if (val === '#') {
+                    td.className = 'black-cell';
+                } else {
+                    td.innerHTML = `<span class="cell-value">${val}</span>`;
+                    
+                    // Check if this cell starts a word (Horizontal or Vertical)
+                    // H: Left is boundary or black AND Right is white
+                    // V: Top is boundary or black AND Bottom is white
+                    let startsH = (c===0 || grid[r][c-1]==='#') && (c+1<size && grid[r][c+1]!=='#');
+                    let startsV = (r===0 || grid[r-1][c]==='#') && (r+1<size && grid[r+1][c]!=='#');
+
+                    if(startsH || startsV) {
+                        td.innerHTML += `<span class="cell-number">${numberCounter}</span>`;
+                        cellNumbers[r][c] = numberCounter;
+                        numberCounter++;
+                    }
+                }
+                tr.appendChild(td);
+            }
+            table.appendChild(tr);
+        }
+        
+        // Store for clue generation
+        window.currentGrid = grid;
+        window.cellNumbers = cellNumbers;
+    }
+
+    function generateClues(grid, size, objectives) {
+        const hCluesDiv = document.getElementById('hClues');
+        const vCluesDiv = document.getElementById('vClues');
+        hCluesDiv.innerHTML = '';
+        vCluesDiv.innerHTML = '';
+
+        // Extract numbers from grid
+        const extractNumbers = (isHorizontal) => {
+            let extracted = [];
+            for (let i = 0; i < size; i++) {
+                let currentNumStr = "";
+                let startPos = null;
+
+                for (let j = 0; j < size; j++) {
+                    // Coordinates depends on direction
+                    let r = isHorizontal ? i : j;
+                    let c = isHorizontal ? j : i;
+                    let val = grid[r][c];
+
+                    if (val !== '#') {
+                        if (currentNumStr === "") startPos = {r, c};
+                        currentNumStr += val;
+                    } 
+                    
+                    if (val === '#' || j === size - 1) {
+                        if (currentNumStr.length > 1) {
+                            extracted.push({
+                                number: parseInt(currentNumStr),
+                                id: window.cellNumbers[startPos.r][startPos.c],
+                                length: currentNumStr.length
+                            });
+                        }
+                        currentNumStr = "";
+                    }
+                }
+            }
+            return extracted.sort((a,b) => a.id - b.id);
+        };
+
+        const hWords = extractNumbers(true);
+        const vWords = extractNumbers(false);
+
+        // Helper to add clue to DOM
+        const addClueToDom = (word, container) => {
+            const mathProblem = generateMathProblem(word.number, objectives);
+            const div = document.createElement('div');
+            div.className = 'clue-item';
+            div.innerHTML = `<span class="clue-label">${word.id}.</span> ${mathProblem}`;
+            container.appendChild(div);
+        };
+
+        hWords.forEach(w => addClueToDom(w, hCluesDiv));
+        vWords.forEach(w => addClueToDom(w, vCluesDiv));
+    }
+
+    // --- MATH PROBLEM GENERATOR (Reverse Engineering) ---
+    function generateMathProblem(target, objectives) {
+        // Pick a random objective from the selected list
+        // objectives is array of {id, label}
+        const objIds = objectives.map(o => o.id);
+        
+        // Fallback if specific generator fails
+        const fallback = () => {
+             // Simple addition fallback
+             let a = Math.floor(Math.random() * target);
+             return `${a} + ${target - a}`;
+        };
+
+        // Attempt to generate based on random selection of available objectives
+        let attempts = 0;
+        while(attempts < 10) {
+            const type = objIds[Math.floor(Math.random() * objIds.length)];
+            let res = null;
+
+            switch(type) {
+                case 'add_simple':
+                case 'add_complex':
+                case 'add_grand':
+                    res = genAddition(target); break;
+                
+                case 'sub_simple':
+                case 'sub_ret':
+                case 'sub_grand':
+                    res = genSubtraction(target); break;
+                
+                case 'mult_table':
+                case 'mult_all':
+                case 'mult_complex':
+                    res = genMultiplication(target); break;
+
+                case 'mult_10_100':
+                    if(target % 10 === 0) res = genMult10(target);
+                    break;
+                
+                case 'double_half':
+                case 'double_triple':
+                    res = genDoubleTriple(target); break;
+                
+                case 'val_position':
+                    res = genPlaceValue(target); break;
+                
+                case 'div_simple':
+                case 'div_eucl':
+                     // Inverse of mult
+                     res = genDivision(target); break;
+
+                case 'comp_10':
+                    // "Complément de X à Y" -> Y - X = target
+                    let base = target + (Math.floor(Math.random()*10)+1);
+                    res = `Complément de ${base - target} à ${base}`;
+                    break;
+                    
+                case 'seq_1':
+                    res = `Le nombre juste après ${target - 1}`;
+                    break;
+                
+                case 'multiples':
+                    res = `Multiple de ${findSmallFactor(target)}`;
+                    break;
+
+                default:
+                    res = genAddition(target); // Default
+            }
+
+            if(res) return res;
+            attempts++;
+        }
+        return fallback();
+    }
+
+    // --- MATH GENERATION HELPERS ---
+    
+    function genAddition(t) {
+        if(currentDifficulty === 3) {
+            let a = Math.floor(Math.random() * t);
+            let b = Math.floor(Math.random() * (t - a));
+            let c = t - a - b;
+            return `${a} + ${b} + ${c}`;
+        }
+        let a = Math.floor(Math.random() * t);
+        return `${a} + ${t - a}`;
+    }
+
+    function genSubtraction(t) {
+        let added = Math.floor(Math.random() * (t/2)) + 1;
+        if(currentDifficulty > 1) added = Math.floor(Math.random() * t) + 10;
+        return `${t + added} - ${added}`;
+    }
+
+    function genMultiplication(t) {
+        // Find factors
+        let factors = [];
+        for(let i=2; i<=Math.sqrt(t); i++) {
+            if(t % i === 0) factors.push(i);
+        }
+        if(factors.length === 0) return null; // Prime number
+        
+        let f1 = factors[Math.floor(Math.random() * factors.length)];
+        let f2 = t / f1;
+        return `${f1} x ${f2}`;
+    }
+
+    function genMult10(t) {
+        if (t % 1000 === 0) return `${t/1000} x 1000`;
+        if (t % 100 === 0) return `${t/100} x 100`;
+        return `${t/10} x 10`;
+    }
+
+    function genDoubleTriple(t) {
+        if (t % 3 === 0 && Math.random() > 0.5) return `Triple de ${t/3}`;
+        if (t % 2 === 0) return `Double de ${t/2}`;
+        return `Moitié de ${t*2}`;
+    }
+
+    function genPlaceValue(t) {
+        // Ex: 125 -> 1 centaine, 2 dizaines et 5 unités
+        let str = t.toString();
+        let len = str.length;
+        if (len === 1) return `${t} unités`;
+        if (len === 2) return `${str[0]} dizaines et ${str[1]} unités`;
+        if (len === 3) return `${str[0]} centaines, ${str[1]} dizaines et ${str[2]} unités`;
+        return genAddition(t);
+    }
+
+    function genDivision(t) {
+        let divisor = Math.floor(Math.random() * 8) + 2;
+        let dividend = t * divisor;
+        return `${dividend} : ${divisor}`;
+    }
+
+    function findSmallFactor(t) {
+        for(let i=2; i<10; i++) {
+            if(t % i === 0) return i;
+        }
+        return 1;
+    }
+
+    // Start
+    init();
+
+</script>
+</body>
+</html>

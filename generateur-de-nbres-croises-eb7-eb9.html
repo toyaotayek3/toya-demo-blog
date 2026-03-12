@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Nombres Croisés - Collège (6ème-3ème)</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #2980b9; /* Plus bleu "maths" */
+            --accent: #8e44ad; /* Violet pour le collège */
+            --bg: #ecf0f1;
+            --sheet-bg: white;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background-color: var(--bg);
+            display: flex;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* --- SIDEBAR --- */
+        aside {
+            width: 360px;
+            background: white;
+            padding: 25px;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.05);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        h1 { 
+            font-size: 1.4rem; 
+            color: var(--primary); 
+            margin: 0; 
+            border-bottom: 3px solid var(--accent);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        select:focus { border-color: var(--secondary); outline: none; }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 2px solid #ecf0f1;
+            padding: 10px;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .checkbox-item:hover { background: #f0f0f0; }
+        .checkbox-item input { width: auto; margin-right: 12px; cursor: pointer; }
+
+        .difficulty-selector { display: flex; gap: 5px; background: #ecf0f1; padding: 5px; border-radius: 6px; }
+        .diff-btn {
+            flex: 1;
+            padding: 8px;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .diff-btn.active { background: var(--secondary); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        button.action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.3s;
+            margin-bottom: 8px;
+        }
+        button.action-btn:hover { background: var(--secondary); transform: translateY(-1px); }
+        button.print-btn { background: #27ae60; }
+        button.toggle-sol-btn { background: var(--accent); }
+
+        .error-msg { color: #c0392b; font-size: 0.8rem; display: none; margin-top: 5px; font-weight: bold; }
+
+        /* --- MAIN AREA --- */
+        main {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: #bdc3c7; /* Darker bg for contrast */
+        }
+
+        /* --- A4 SHEET --- */
+        .a4-sheet {
+            background: var(--sheet-bg);
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm 20mm;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sheet-header {
+            display: flex;
+            border-bottom: 3px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .header-left h2 { margin: 0; font-size: 2rem; text-transform: uppercase; letter-spacing: 2px; }
+        .header-left span { font-size: 1rem; color: #666; font-style: italic; }
+        
+        .header-right { text-align: right; font-size: 1rem; line-height: 1.6; }
+        .header-right div { border-bottom: 1px dotted #999; min-width: 150px; display: inline-block; }
+
+        /* GRID */
+        .grid-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        table.crossnumber-grid {
+            border-collapse: collapse;
+            border: 4px solid #000;
+        }
+        
+        td {
+            width: 38px;
+            height: 38px;
+            border: 1px solid #666;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            position: relative;
+            vertical-align: middle;
+            padding: 0;
+        }
+
+        td.black-cell { background-color: #2c3e50 !important; }
+
+        td .cell-number {
+            position: absolute;
+            top: 1px;
+            left: 2px;
+            font-size: 9px;
+            font-weight: normal;
+            line-height: 1;
+        }
+
+        td .cell-value { visibility: hidden; color: var(--accent); font-family: 'Courier New', monospace; }
+        td.show-value .cell-value { visibility: visible; }
+
+        /* CLUES */
+        .clues-container {
+            column-count: 2;
+            column-gap: 40px;
+            font-size: 0.9rem;
+        }
+        
+        h3.clue-title {
+            margin-top: 0;
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            break-after: avoid;
+        }
+
+        .clue-block { break-inside: avoid; margin-bottom: 20px; }
+        
+        .clue-item { margin-bottom: 4px; display: flex; }
+        .clue-id { font-weight: bold; min-width: 30px; }
+        .clue-text { font-family: "Times New Roman", serif; font-size: 1.05rem; }
+
+        .skills-footer {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid #ccc;
+            font-size: 0.8rem;
+            color: #777;
+            text-align: center;
+        }
+
+        /* PRINT */
+        @media print {
+            aside { display: none; }
+            body, main { background: white; display: block; height: auto; margin: 0; }
+            main { padding: 0; }
+            .a4-sheet { width: 100%; box-shadow: none; margin: 0; padding: 0; min-height: auto; }
+            td.black-cell { background-color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            td .cell-value { visibility: hidden; }
+            body.print-solution td .cell-value { visibility: visible !important; color: black; }
+        }
+    </style>
+</head>
+<body>
+
+<aside>
+    <h1>📐 Collège Math</h1>
+    
+    <div class="control-group">
+        <label>Classe</label>
+        <select id="gradeSelect" onchange="updateObjectives()">
+            <option value="6eme">6ème (Cycle 3)</option>
+            <option value="5eme">5ème (Cycle 4)</option>
+            <option value="4eme">4ème (Cycle 4)</option>
+            <option value="3eme">3ème (Cycle 4)</option>
+        </select>
+    </div>
+
+    <div class="control-group">
+        <label>Compétences (Min 3)</label>
+        <div id="objectivesList" class="checkbox-group"></div>
+        <div id="objError" class="error-msg">Sélectionnez au moins 3 compétences.</div>
+    </div>
+
+    <div class="control-group">
+        <label>Difficulté</label>
+        <div class="difficulty-selector">
+            <div class="diff-btn active" onclick="setDifficulty(1)" id="diff1">Facile</div>
+            <div class="diff-btn" onclick="setDifficulty(2)" id="diff2">Moyen</div>
+            <div class="diff-btn" onclick="setDifficulty(3)" id="diff3">Difficile</div>
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label>Taille de la grille</label>
+        <select id="gridSize">
+            <option value="8">Standard (8x8)</option>
+            <option value="10" selected>Grande (10x10)</option>
+            <option value="12">XL (12x12)</option>
+        </select>
+    </div>
+
+    <div style="margin-top:10px;">
+        <button class="action-btn" onclick="generatePuzzle()">⚡ Générer la grille</button>
+        <button class="action-btn toggle-sol-btn" onclick="toggleSolution()">👁️ Voir le corrigé</button>
+        <button class="action-btn print-btn" onclick="printSheet(false)">🖨️ Imprimer Élève</button>
+        <button class="action-btn print-btn" onclick="printSheet(true)">🖨️ Imprimer Prof</button>
+    </div>
+</aside>
+
+<main>
+    <div class="a4-sheet" id="printableArea">
+        <header class="sheet-header">
+            <div class="header-left">
+                <h2>Nombres Croisés</h2>
+                <span id="displayLevel">Niveau 3ème</span>
+            </div>
+            <div class="header-right">
+                Nom : <div>&nbsp;</div><br>
+                Classe : <div>&nbsp;</div><br>
+                Date : <div>&nbsp;</div>
+            </div>
+        </header>
+
+        <div class="grid-wrapper">
+            <table class="crossnumber-grid" id="gridTable"></table>
+        </div>
+
+        <div class="clues-container">
+            <div class="clue-block">
+                <h3 class="clue-title">Horizontalement</h3>
+                <div id="hClues"></div>
+            </div>
+            <div class="clue-block">
+                <h3 class="clue-title">Verticalement</h3>
+                <div id="vClues"></div>
+            </div>
+        </div>
+
+        <footer class="skills-footer">
+            Compétences travaillées : <span id="skillsDisplay"></span>
+        </footer>
+    </div>
+</main>
+
+<script>
+    // --- DATA BO COLLÈGE ---
+    const boData = {
+        '6eme': [
+            { id: 'op_entier', label: 'Opérations sur entiers (+, -, x)' },
+            { id: 'op_decimaux', label: 'Calculs avec décimaux (x10, x0.1)' },
+            { id: 'div_eucl', label: 'Division Euclidienne (reste/quotient)' },
+            { id: 'criteres_div', label: 'Critères de divisibilité (2,3,5,9)' },
+            { id: 'durees', label: 'Calculs de durées (minutes/secondes)' },
+            { id: 'pb_simple', label: 'Petits problèmes numériques' }
+        ],
+        '5eme': [
+            { id: 'prio_op', label: 'Priorités opératoires' },
+            { id: 'relatifs_simple', label: 'Somme de nombres relatifs' },
+            { id: 'distributivite', label: 'Distributivité simple' },
+            { id: 'fractions_simple', label: 'Fractions (somme même déno.)' },
+            { id: 'prop_angle', label: 'Angles (somme triangle)' },
+            { id: 'pourcentage', label: 'Pourcentages simples' }
+        ],
+        '4eme': [
+            { id: 'puissances', label: 'Puissances de 10 et d\'entiers' },
+            { id: 'relatifs_mul', label: 'Produit/Division de relatifs' },
+            { id: 'equations_1', label: 'Équations simples (ax=b, a+x=b)' },
+            { id: 'pythagore', label: 'Théorème de Pythagore (carrés)' },
+            { id: 'vitesse', label: 'Vitesse = Distance / Temps' }
+        ],
+        '3eme': [
+            { id: 'arithm_gcd', label: 'Arithmétique (Diviseurs, Premiers)' },
+            { id: 'fonctions', label: 'Fonctions (Images et Antécédents)' },
+            { id: 'equations_2', label: 'Équations (ax+b=c)' },
+            { id: 'proba', label: 'Probabilités (fractions)' },
+            { id: 'scientific', label: 'Notation Scientifique' },
+            { id: 'ident_rmq', label: 'Identités Remarquables (carrés)' }
+        ]
+    };
+
+    let currentDifficulty = 1;
+
+    // --- INIT ---
+    function init() {
+        updateObjectives();
+        generatePuzzle();
+    }
+
+    // --- UI FUNCTIONS ---
+    function updateObjectives() {
+        const grade = document.getElementById('gradeSelect').value;
+        const list = document.getElementById('objectivesList');
+        list.innerHTML = '';
+        
+        // Update Label Level
+        const selText = document.getElementById('gradeSelect').options[document.getElementById('gradeSelect').selectedIndex].text;
+        document.getElementById('displayLevel').innerText = selText;
+
+        boData[grade].forEach(obj => {
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+            div.innerHTML = `
+                <input type="checkbox" value="${obj.id}" id="${obj.id}" checked>
+                <label for="${obj.id}" style="font-weight:normal; margin:0;">${obj.label}</label>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function setDifficulty(lvl) {
+        currentDifficulty = lvl;
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('diff'+lvl).classList.add('active');
+    }
+
+    function toggleSolution() {
+        document.querySelectorAll('td').forEach(td => td.classList.toggle('show-value'));
+    }
+
+    function printSheet(sol) {
+        if(sol) document.body.classList.add('print-solution');
+        else document.body.classList.remove('print-solution');
+        window.print();
+    }
+
+    // --- CORE GENERATOR ---
+    function generatePuzzle() {
+        const grade = document.getElementById('gradeSelect').value;
+        const selectedCB = document.querySelectorAll('#objectivesList input:checked');
+        
+        if(selectedCB.length < 3) {
+            document.getElementById('objError').style.display = 'block';
+            return;
+        }
+        document.getElementById('objError').style.display = 'none';
+
+        // Get Objectives Objects
+        const objs = Array.from(selectedCB).map(cb => {
+            return boData[grade].find(o => o.id === cb.value);
+        });
+        document.getElementById('skillsDisplay').innerText = objs.map(o => o.label).join(', ');
+
+        const size = parseInt(document.getElementById('gridSize').value);
+        
+        // 1. Grid Structure
+        let grid = createGrid(size);
+        // 2. Fill Numbers
+        grid = fillGrid(grid, size);
+        // 3. Render HTML
+        renderGrid(grid, size);
+        // 4. Generate Clues
+        generateClues(grid, size, objs);
+    }
+
+    function createGrid(size) {
+        let grid = Array(size).fill(0).map(() => Array(size).fill(null));
+        // Black squares pattern (~15%)
+        const count = Math.floor(size*size*0.15);
+        for(let i=0; i<count; i++) {
+            let r = Math.floor(Math.random()*size);
+            let c = Math.floor(Math.random()*size);
+            grid[r][c] = '#';
+            grid[size-1-r][size-1-c] = '#'; // Symmetry
+        }
+        return grid;
+    }
+
+    function fillGrid(grid, size) {
+        for(let r=0; r<size; r++){
+            for(let c=0; c<size; c++){
+                if(grid[r][c] !== '#') {
+                    // Logic to avoid starting numbers with 0 if possible
+                    let min = 0;
+                    let startsH = (c===0 || grid[r][c-1]==='#');
+                    let startsV = (r===0 || grid[r-1][c]==='#');
+                    if(startsH || startsV) min = 1;
+                    grid[r][c] = Math.floor(Math.random() * (10 - min)) + min;
+                }
+            }
+        }
+        return grid;
+    }
+
+    let cellNumMap = [];
+
+    function renderGrid(grid, size) {
+        const table = document.getElementById('gridTable');
+        table.innerHTML = '';
+        cellNumMap = Array(size).fill(0).map(() => Array(size).fill(0));
+        let counter = 1;
+
+        for(let r=0; r<size; r++) {
+            const tr = document.createElement('tr');
+            for(let c=0; c<size; c++) {
+                const td = document.createElement('td');
+                const val = grid[r][c];
+                if(val === '#') {
+                    td.className = 'black-cell';
+                } else {
+                    td.innerHTML = `<span class="cell-value">${val}</span>`;
+                    // Determine if it gets a number
+                    let isStartH = (c===0 || grid[r][c-1]==='#') && (c+1<size && grid[r][c+1]!=='#');
+                    let isStartV = (r===0 || grid[r-1][c]==='#') && (r+1<size && grid[r+1][c]!=='#');
+                    if(isStartH || isStartV) {
+                        td.innerHTML += `<span class="cell-number">${counter}</span>`;
+                        cellNumMap[r][c] = counter;
+                        counter++;
+                    }
+                }
+                tr.appendChild(td);
+            }
+            table.appendChild(tr);
+        }
+    }
+
+    function generateClues(grid, size, objectives) {
+        const hClues = document.getElementById('hClues');
+        const vClues = document.getElementById('vClues');
+        hClues.innerHTML = ''; vClues.innerHTML = '';
+
+        const getWords = (isH) => {
+            let words = [];
+            for(let i=0; i<size; i++) {
+                let currentStr = "";
+                let startPos = null;
+                for(let j=0; j<size; j++) {
+                    let r = isH ? i : j;
+                    let c = isH ? j : i;
+                    let val = grid[r][c];
+                    
+                    if(val !== '#') {
+                        if(currentStr==="") startPos = {r,c};
+                        currentStr += val;
+                    }
+                    if(val === '#' || j===size-1) {
+                        if(currentStr.length > 1) {
+                            words.push({
+                                num: parseInt(currentStr),
+                                id: cellNumMap[startPos.r][startPos.c],
+                                len: currentStr.length
+                            });
+                        }
+                        currentStr = "";
+                    }
+                }
+            }
+            return words.sort((a,b)=>a.id - b.id);
+        };
+
+        const renderClue = (w, container) => {
+            const text = createMathProblem(w.num, objectives);
+            const div = document.createElement('div');
+            div.className = 'clue-item';
+            div.innerHTML = `<span class="clue-id">${w.id}.</span> <span class="clue-text">${text}</span>`;
+            container.appendChild(div);
+        };
+
+        getWords(true).forEach(w => renderClue(w, hClues));
+        getWords(false).forEach(w => renderClue(w, vClues));
+    }
+
+    // --- MATH ENGINE (REVERSE ENGINEERING) ---
+    function createMathProblem(target, objs) {
+        // Fallback
+        const fallback = () => `${Math.floor(target/2)} + ${target - Math.floor(target/2)}`;
+
+        // Pick random objective
+        let attempts = 0;
+        while(attempts < 15) {
+            const obj = objs[Math.floor(Math.random() * objs.length)];
+            let res = null;
+            
+            try {
+                switch(obj.id) {
+                    case 'op_entier': res = genBasicOp(target); break;
+                    case 'op_decimaux': res = genDecimalOp(target); break;
+                    case 'div_eucl': res = genDivEucl(target); break;
+                    case 'criteres_div': res = genDivisibility(target); break;
+                    case 'durees': res = genTime(target); break;
+                    case 'prio_op': res = genPriority(target); break;
+                    case 'relatifs_simple': res = genRelativeSum(target); break;
+                    case 'relatifs_mul': res = genRelativeProd(target); break;
+                    case 'distributivite': res = genDistri(target); break;
+                    case 'fractions_simple': res = genFractionSum(target); break;
+                    case 'prop_angle': res = genAngles(target); break;
+                    case 'pourcentage': res = genPercent(target); break;
+                    case 'puissances': res = genPowers(target); break;
+                    case 'equations_1': res = genEq1(target); break;
+                    case 'equations_2': res = genEq2(target); break;
+                    case 'pythagore': res = genPythagore(target); break;
+                    case 'arithm_gcd': res = genArithm(target); break;
+                    case 'fonctions': res = genFunction(target); break;
+                    case 'scientific': res = genScientific(target); break;
+                }
+            } catch(e) {}
+
+            if(res) return res;
+            attempts++;
+        }
+        return fallback();
+    }
+
+    // --- GENERATORS ---
+    
+    // 6eme / 5eme
+    function genBasicOp(t) {
+        const op = Math.random() > 0.5 ? 'sub' : 'add';
+        if(op==='add') { let a = Math.floor(Math.random()*t); return `${a} + ${t-a}`; }
+        else { let add = Math.floor(Math.random()*100); return `${t+add} - ${add}`; }
+    }
+    
+    function genDecimalOp(t) {
+        // ex: target 54. Clue: 5,4 x 10
+        if(Math.random() > 0.5) return `${t/10} × 10`;
+        return `${t*10} × 0,1`;
+    }
+
+    function genDivEucl(t) {
+        // target is the Dividend. We find Divisor and Remainder. NO.
+        // Usually crossword answer is the result. 
+        // Let's say answer is Quotient. "Quotient de X par Y".
+        let y = Math.floor(Math.random()*8)+2;
+        let r = Math.floor(Math.random()*(y-1));
+        let x = t*y + r;
+        return `Quotient entier de ${x} par ${y}`;
+    }
+
+    function genDivisibility(t) {
+        // "Multiple de X" is vague. 
+        // "Le plus petit multiple de 9 supérieur à ..."
+        let m = [2,3,5,9,10][Math.floor(Math.random()*5)];
+        if(t % m === 0) return `Multiple de ${m}`;
+        return null;
+    }
+
+    function genTime(t) {
+        // target = minutes. "X h Y min"
+        if(t > 60) {
+            let h = Math.floor(t/60);
+            let m = t%60;
+            return `En minutes : ${h}h ${m}min`;
+        }
+        return `Nombre de minutes dans ${t*60} secondes`;
+    }
+
+    // 5eme / 4eme
+    function genPriority(t) {
+        // a + b * c = t
+        let c = Math.floor(Math.random()*5)+2;
+        let b = Math.floor(Math.random()*(t/c));
+        let a = t - (b*c);
+        return `${a} + ${b} × ${c}`;
+    }
+
+    function genRelativeSum(t) {
+        // t is positive int in grid. 
+        // a + b = t (with negatives)
+        let neg = -1 * Math.floor(Math.random()*10 + 1);
+        let pos = t - neg; 
+        return `(${neg}) + ${pos}`;
+    }
+
+    function genRelativeProd(t) {
+        // a * b = t. t is positive.
+        // Need two negatives.
+        // Find factors
+        for(let i= -2; i > -Math.sqrt(t); i--) {
+            if(t % i === 0) return `(${i}) × (${t/i})`;
+        }
+        return null;
+    }
+
+    function genFractionSum(t) {
+        // a/d + b/d = t
+        // (a+b)/d = t => a+b = t*d
+        let d = Math.floor(Math.random()*4)+2; // denom
+        let sum = t*d;
+        let a = Math.floor(Math.random()*sum);
+        let b = sum - a;
+        return `${a}/${d} + ${b}/${d}`;
+    }
+
+    function genAngles(t) {
+        if(t > 180) return null;
+        let a = Math.floor(Math.random()*(179-t));
+        let b = 180 - t - a;
+        if(a<=0 || b<=0) return null;
+        return `3ème angle d'un triangle si les deux autres font ${a}° et ${b}°`;
+    }
+
+    function genPercent(t) {
+        // x % de Y = t
+        // t = 50 -> 50% de 100
+        return `50% de ${t*2}`;
+    }
+
+    // 4eme / 3eme
+    function genPowers(t) {
+        // Check if t is a power
+        // Squares
+        let sqrt = Math.sqrt(t);
+        if(Number.isInteger(sqrt)) return `Carré de ${sqrt}`;
+        // Cubes
+        let cbrt = Math.cbrt(t);
+        if(Number.isInteger(cbrt)) return `Cube de ${cbrt}`;
+        // Powers of 10
+        let log10 = Math.log10(t);
+        if(Number.isInteger(log10)) return `10 puissance ${log10}`;
+        
+        return `${t} × 10⁰`; // Fallback simple
+    }
+
+    function genEq1(t) {
+        // x solution of ax = b
+        let a = Math.floor(Math.random()*5)+2;
+        let b = a * t;
+        return `x solution de ${a}x = ${b}`;
+    }
+    
+    function genEq2(t) {
+        // ax + b = c
+        let a = 2;
+        let b = 10;
+        let c = a*t + b;
+        return `x solution de ${a}x + ${b} = ${c}`;
+    }
+
+    function genPythagore(t) {
+        // t is hypotenuse^2 ? No too hard.
+        // t is a side.
+        // "Hypoténuse si l'autre côté est b et c...". Too complex for int result.
+        // Simply: "AB² si AC=... and BC=..." (Pythagore calcul)
+        // Let's create a scenario where t is the result of a² + b² or c² - a²
+        // Try to find if t = c² - a²
+        for(let a=1; a<Math.sqrt(t); a++) {
+             let c2 = t + a*a;
+             let c = Math.sqrt(c2);
+             if(Number.isInteger(c)) return `Côté adjacent si hypoténuse=${c} et opposé=${a} (au carré)`;
+        }
+        return `Carré de ${Math.sqrt(t).toFixed(2)} (arrondi)`; // Weak
+    }
+
+    function genFunction(t) {
+        // f(x) = x + a. Image of t-a
+        let a = 5;
+        return `Image de ${t-a} par f(x) = x + ${a}`;
+    }
+
+    function genScientific(t) {
+        // t = 4500 -> 4.5 x 10^3. We want t as result.
+        // Not easy to describe t.
+        // Instead: "Mantisse de 4.5 x 10^n" -> 45 (no)
+        // Let's do: "Nombre écrit 4,5 x 10^n" -> grid has 4500
+        let str = t.toString();
+        if(str.endsWith('00')) {
+            let zeros = 0;
+            let temp = t;
+            while(temp%10===0 && temp>0) { temp/=10; zeros++; }
+            return `${temp} × 10 puissance ${zeros}`;
+        }
+        return null;
+    }
+    
+    function genArithm(t) {
+        // PGCD
+        // t is GCD of A and B
+        let a = t * 2; 
+        let b = t * 3;
+        return `PGCD de ${a} et ${b}`;
+    }
+
+    init();
+</script>
+</body>
+</html>

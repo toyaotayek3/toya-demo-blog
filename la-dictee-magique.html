@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Dictée Magique - CM1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+        
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0f9ff;
+            /* Motif de fond léger pour un aspect plus "cahier/école" */
+            background-image: radial-gradient(#bae6fd 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .card {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-radius: 24px;
+        }
+
+        .btn-bounce {
+            transition: transform 0.1s ease-in-out, background-color 0.2s;
+        }
+        .btn-bounce:active {
+            transform: scale(0.95);
+        }
+
+        .feedback-animation {
+            animation: pop 0.5s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Animation pour le haut-parleur */
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(250, 204, 21, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+        }
+        .playing-sound {
+            animation: pulse-ring 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4 text-slate-800">
+
+    <div id="game-container" class="w-full max-w-lg bg-white p-6 sm:p-10 card text-center border-4 border-white">
+        
+        <!-- En-tête commune -->
+        <h1 class="text-3xl sm:text-4xl font-bold text-blue-600 mb-2 drop-shadow-sm">La Dictée Magique</h1>
+        <p class="text-slate-500 mb-6 font-medium">Programme CM1 (BO & Liban)</p>
+
+        <!-- ZONE 1 : MENU PRINCIPAL (Choix du niveau) -->
+        <div id="home-zone" class="flex flex-col gap-4">
+            <p class="text-lg mb-4 text-slate-600">Choisis ton niveau de difficulté :</p>
+            
+            <button onclick="startGame('facile')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-6 rounded-2xl text-xl btn-bounce shadow-md flex items-center justify-center gap-3">
+                <span class="text-2xl">🌱</span> Niveau 1 : Facile
+            </button>
+            <button onclick="startGame('moyen')" class="bg-orange-400 hover:bg-orange-500 text-white font-bold py-4 px-6 rounded-2xl text-xl btn-bounce shadow-md flex items-center justify-center gap-3">
+                <span class="text-2xl">⭐</span> Niveau 2 : Moyen
+            </button>
+            <button onclick="startGame('difficile')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-6 rounded-2xl text-xl btn-bounce shadow-md flex items-center justify-center gap-3">
+                <span class="text-2xl">🔥</span> Niveau 3 : Difficile
+            </button>
+        </div>
+
+        <!-- ZONE 2 : JEU (Cachée au début) -->
+        <div id="game-active-zone" class="hidden">
+            <!-- Barre de progression et Compteur -->
+            <div class="flex justify-between items-center mb-2">
+                <span id="level-indicator" class="text-xs font-bold uppercase tracking-wider text-white bg-blue-500 py-1 px-3 rounded-full">Niveau</span>
+                <span id="word-counter" class="text-sm font-bold text-slate-500">Mot 1 / 10</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-4 mb-8 overflow-hidden shadow-inner">
+                <div id="progress-bar" class="bg-gradient-to-r from-blue-400 to-blue-600 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <!-- Sous-zone de question -->
+            <div id="play-zone">
+                <button id="listen-btn" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-6 px-6 rounded-full mb-4 btn-bounce shadow-lg transition-all mx-auto flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>
+                </button>
+                <p class="text-sm text-slate-400 mb-6 italic">Clique sur le haut-parleur pour écouter le mot</p>
+
+                <input type="text" id="answer-input" autocomplete="off"
+                       class="w-full border-2 border-slate-200 rounded-xl px-4 py-4 text-2xl text-center focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none mb-6 font-semibold text-slate-700 shadow-inner"
+                       placeholder="Écris le mot ici...">
+
+                <button id="check-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-xl btn-bounce transition-colors shadow-md">
+                    Vérifier
+                </button>
+            </div>
+
+            <!-- Sous-zone de feedback (Cachée au début) -->
+            <div id="feedback-zone" class="hidden feedback-animation">
+                <div id="feedback-icon" class="text-6xl mb-4"></div>
+                <p id="feedback-text" class="text-3xl font-bold mb-2"></p>
+                <div id="correct-answer-container" class="min-h-[3rem] mb-6 flex items-center justify-center">
+                    <p id="correct-answer" class="text-xl text-slate-600"></p>
+                </div>
+                <button id="next-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-4 rounded-xl text-xl btn-bounce transition-colors shadow-md">
+                    Mot suivant ➔
+                </button>
+            </div>
+        </div>
+
+        <!-- ZONE 3 : RÉSULTATS (Cachée au début) -->
+        <div id="result-zone" class="hidden feedback-animation flex flex-col items-center">
+            <div id="result-icon" class="text-7xl mb-4">🏆</div>
+            <h2 class="text-4xl font-bold text-blue-600 mb-2">Partie terminée !</h2>
+            <p id="final-score" class="text-2xl mb-8 font-semibold text-slate-700 bg-slate-100 py-3 px-6 rounded-2xl"></p>
+            
+            <div class="flex flex-col gap-3 w-full">
+                <button onclick="replayCurrentLevel()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-xl btn-bounce shadow-md flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    Rejouer ce niveau
+                </button>
+                <button onclick="goToHome()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 rounded-xl text-xl btn-bounce transition-colors">
+                    Changer de niveau
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. Banque de mots selon les BO (France) et curriculum Libanais pour le CM1
+        const wordBanks = {
+            facile: [
+                // Correspondances simples, mots fréquents, mots invariables de base
+                "toujours", "jamais", "maison", "école", "jardin", "soleil", "enfant", 
+                "animal", "voiture", "pomme", "livre", "oiseau", "fleur", "porte", 
+                "fenêtre", "arbre", "classe", "stylo", "matin", "cèdre", "liban", "mer"
+            ],
+            moyen: [
+                // Doubles consonnes, lettres muettes, sons complexes (g/ge, c/ç, s/ss)
+                "attention", "difficile", "village", "garçon", "beaucoup", "automne", 
+                "chocolat", "famille", "travail", "montagne", "campagne", "voyage", 
+                "magique", "histoire", "poisson", "leçon", "nourriture", "souvent", 
+                "taboulé", "parfum", "secret", "trésor", "femme", "homme"
+            ],
+            difficile: [
+                // Mots invariables complexes, mots longs, exceptions, vocabulaire avancé CM1
+                "méditerranée", "hippopotame", "scientifique", "environnement", "aujourd'hui", 
+                "tranquillement", "orchestre", "dictionnaire", "printemps", "conscience", 
+                "automatiquement", "gentillesse", "brouillard", "aquarium", "évidemment", 
+                "archéologie", "phénicien", "traditionnel", "exceptionnel", "développement"
+            ]
+        };
+
+        const WORDS_PER_GAME = 10;
+        let currentLevel = '';
+        let currentWordList = [];
+        let currentWordIndex = 0;
+        let score = 0;
+
+        // Configuration de la synthèse vocale
+        const synth = window.speechSynthesis;
+
+        // Éléments du DOM
+        const homeZone = document.getElementById('home-zone');
+        const gameActiveZone = document.getElementById('game-active-zone');
+        const playZone = document.getElementById('play-zone');
+        const feedbackZone = document.getElementById('feedback-zone');
+        const resultZone = document.getElementById('result-zone');
+        
+        const listenBtn = document.getElementById('listen-btn');
+        const checkBtn = document.getElementById('check-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const answerInput = document.getElementById('answer-input');
+        
+        const feedbackText = document.getElementById('feedback-text');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const correctAnswerDisplay = document.getElementById('correct-answer');
+        const progressBar = document.getElementById('progress-bar');
+        const wordCounter = document.getElementById('word-counter');
+        const levelIndicator = document.getElementById('level-indicator');
+
+        // --- Fonctions utilitaires ---
+
+        // Fonction pour mélanger un tableau (Fisher-Yates)
+        function shuffleArray(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // --- Logique du jeu ---
+
+        function startGame(level) {
+            currentLevel = level;
+            
+            // Préparer la liste de mots : on mélange la banque et on prend les N premiers
+            const fullBank = wordBanks[level];
+            currentWordList = shuffleArray(fullBank).slice(0, WORDS_PER_GAME);
+            
+            // Réinitialiser les variables
+            currentWordIndex = 0;
+            score = 0;
+            
+            // Mettre à jour l'UI
+            levelIndicator.innerText = `Niveau ${level === 'facile' ? '1' : level === 'moyen' ? '2' : '3'}`;
+            levelIndicator.className = `text-xs font-bold uppercase tracking-wider text-white py-1 px-3 rounded-full ${
+                level === 'facile' ? 'bg-green-500' : level === 'moyen' ? 'bg-orange-400' : 'bg-red-500'
+            }`;
+
+            // Gérer l'affichage des zones
+            homeZone.classList.add('hidden');
+            resultZone.classList.add('hidden');
+            gameActiveZone.classList.remove('hidden');
+            playZone.classList.remove('hidden');
+            feedbackZone.classList.add('hidden');
+
+            updateUI();
+            
+            // Lancer le premier mot avec un léger délai pour l'animation
+            setTimeout(() => {
+                speakWord(currentWordList[currentWordIndex]);
+                answerInput.focus();
+            }, 300);
+        }
+
+        function speakWord(word) {
+            if (synth.speaking) synth.cancel();
+            
+            const utter = new SpeechSynthesisUtterance(word);
+            utter.lang = 'fr-FR';
+            utter.rate = 0.85; // Débit légèrement ralenti pour la dictée
+            utter.pitch = 1.1; // Voix un peu plus claire
+            
+            // Animation du bouton
+            listenBtn.classList.add('playing-sound');
+            utter.onend = () => listenBtn.classList.remove('playing-sound');
+            utter.onerror = () => listenBtn.classList.remove('playing-sound');
+
+            synth.speak(utter);
+        }
+
+        function checkAnswer() {
+            if(answerInput.value.trim() === "") return; // Empêche de valider à vide
+
+            // Nettoyage de l'entrée : espaces, minuscules
+            const userValue = answerInput.value.trim().toLowerCase();
+            const targetWord = currentWordList[currentWordIndex].toLowerCase();
+
+            playZone.classList.add('hidden');
+            feedbackZone.classList.remove('hidden');
+
+            if (userValue === targetWord) {
+                score++;
+                feedbackIcon.innerText = "🌟";
+                feedbackText.innerText = "Excellent !";
+                feedbackText.className = "text-3xl font-bold mb-2 text-green-500";
+                correctAnswerDisplay.innerHTML = `Tu as bien écrit : <span class="font-bold text-green-600">${targetWord}</span>`;
+            } else {
+                feedbackIcon.innerText = "❌";
+                feedbackText.innerText = "Oups !";
+                feedbackText.className = "text-3xl font-bold mb-2 text-red-500";
+                correctAnswerDisplay.innerHTML = `Il fallait écrire : <span class="font-bold text-blue-600 text-2xl tracking-wide">${targetWord}</span><br><span class="text-sm text-slate-400 mt-2 block">Tu avais écrit : <del>${userValue}</del></span>`;
+            }
+            
+            // Focus automatique sur le bouton "suivant" pour enchaîner à l'aide de la touche Entrée
+            setTimeout(() => nextBtn.focus(), 100);
+        }
+
+        function nextWord() {
+            currentWordIndex++;
+            
+            if (currentWordIndex < currentWordList.length) {
+                updateUI();
+                answerInput.value = "";
+                feedbackZone.classList.add('hidden');
+                playZone.classList.remove('hidden');
+                speakWord(currentWordList[currentWordIndex]);
+                answerInput.focus();
+            } else {
+                showFinalResults();
+            }
+        }
+
+        function updateUI() {
+            // Mise à jour du compteur de mots
+            wordCounter.innerText = `Mot ${currentWordIndex + 1} sur ${WORDS_PER_GAME}`;
+            
+            // Mise à jour de la barre de progression
+            const percentage = (currentWordIndex / WORDS_PER_GAME) * 100;
+            progressBar.style.width = percentage + "%";
+        }
+
+        function showFinalResults() {
+            gameActiveZone.classList.add('hidden');
+            resultZone.classList.remove('hidden');
+            
+            const finalScoreEl = document.getElementById('final-score');
+            finalScoreEl.innerHTML = `Tu as trouvé <span class="text-blue-600 font-bold">${score}</span> mots sur ${WORDS_PER_GAME} !`;
+            
+            // Changer l'icône de résultat en fonction du score
+            const resultIcon = document.getElementById('result-icon');
+            const ratio = score / WORDS_PER_GAME;
+            if (ratio === 1) resultIcon.innerText = "👑"; // Sans faute
+            else if (ratio >= 0.7) resultIcon.innerText = "🏆"; // Très bien
+            else if (ratio >= 0.5) resultIcon.innerText = "👍"; // Bien
+            else resultIcon.innerText = "💪"; // Courage
+        }
+
+        function replayCurrentLevel() {
+            // Relance directement une partie avec le même niveau, ce qui générera 10 nouveaux mots
+            startGame(currentLevel);
+        }
+
+        function goToHome() {
+            // Retour au menu principal
+            resultZone.classList.add('hidden');
+            gameActiveZone.classList.add('hidden');
+            homeZone.classList.remove('hidden');
+        }
+
+        // --- Écouteurs d'événements ---
+        
+        listenBtn.addEventListener('click', () => {
+            speakWord(currentWordList[currentWordIndex]);
+            answerInput.focus();
+        });
+        
+        checkBtn.addEventListener('click', checkAnswer);
+        nextBtn.addEventListener('click', nextWord);
+
+        // Validation avec la touche Entrée
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                checkBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

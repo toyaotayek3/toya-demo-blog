@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Dictée Magique - CM1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+        
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0f9ff;
+        }
+
+        .card {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+        }
+
+        .btn-bounce:active {
+            transform: scale(0.95);
+        }
+
+        .feedback-animation {
+            animation: pop 0.5s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div id="game-container" class="w-full max-w-lg bg-white p-8 card text-center">
+        <h1 class="text-3xl font-bold text-blue-600 mb-2">La Dictée Magique</h1>
+        <p class="text-gray-500 mb-6">Niveau CM1</p>
+
+        <!-- Barre de progression -->
+        <div class="w-full bg-gray-200 rounded-full h-4 mb-8">
+            <div id="progress-bar" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+
+        <!-- Zone de jeu -->
+        <div id="play-zone">
+            <button id="listen-btn" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-6 px-6 rounded-full mb-6 btn-bounce shadow-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+            </button>
+            <p class="text-sm text-gray-400 mb-4 italic">Clique sur le haut-parleur pour écouter le mot</p>
+
+            <input type="text" id="answer-input" autocomplete="off" autofocus
+                   class="w-full border-2 border-gray-300 rounded-xl px-4 py-3 text-2xl text-center focus:border-blue-500 focus:outline-none mb-6 uppercase"
+                   placeholder="Écris le mot ici...">
+
+            <button id="check-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-xl btn-bounce transition-colors">
+                Vérifier
+            </button>
+        </div>
+
+        <!-- Zone de feedback (cachée au début) -->
+        <div id="feedback-zone" class="hidden feedback-animation">
+            <div id="feedback-icon" class="text-6xl mb-4"></div>
+            <p id="feedback-text" class="text-2xl font-bold mb-2"></p>
+            <p id="correct-answer" class="text-lg text-gray-600 mb-6"></p>
+            <button id="next-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl text-xl btn-bounce transition-colors">
+                Mot suivant
+            </button>
+        </div>
+
+        <!-- Résultat final -->
+        <div id="result-zone" class="hidden feedback-animation">
+            <h2 class="text-4xl font-bold text-blue-600 mb-4">Bravo !</h2>
+            <p id="final-score" class="text-2xl mb-6"></p>
+            <button onclick="location.reload()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl text-xl btn-bounce">
+                Rejouer
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const wordList = [
+            "évidemment", "nourriture", "souvent", "orchestre", "magnifique", 
+            "hippopotame", "conscience", "automatiquement", "paysage", "gentillesse",
+            "aquarium", "brouillard", "théâtre", "dictionnaire", "printemps"
+        ];
+
+        let currentWordIndex = 0;
+        let score = 0;
+        const synth = window.speechSynthesis;
+
+        const listenBtn = document.getElementById('listen-btn');
+        const checkBtn = document.getElementById('check-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const answerInput = document.getElementById('answer-input');
+        const playZone = document.getElementById('play-zone');
+        const feedbackZone = document.getElementById('feedback-zone');
+        const resultZone = document.getElementById('result-zone');
+        const feedbackText = document.getElementById('feedback-text');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const correctAnswerDisplay = document.getElementById('correct-answer');
+        const progressBar = document.getElementById('progress-bar');
+
+        function speakWord(word) {
+            if (synth.speaking) synth.cancel();
+            const utter = new SpeechSynthesisUtterance(word);
+            utter.lang = 'fr-FR';
+            utter.rate = 0.9; // Légèrement plus lent pour aider l'enfant
+            synth.speak(utter);
+        }
+
+        function checkAnswer() {
+            const userValue = answerInput.value.trim().toLowerCase();
+            const targetWord = wordList[currentWordIndex].toLowerCase();
+
+            playZone.classList.add('hidden');
+            feedbackZone.classList.remove('hidden');
+
+            if (userValue === targetWord) {
+                score++;
+                feedbackIcon.innerText = "🌟";
+                feedbackText.innerText = "Excellent !";
+                feedbackText.className = "text-2xl font-bold mb-2 text-green-500";
+                correctAnswerDisplay.innerText = "";
+            } else {
+                feedbackIcon.innerText = "❌";
+                feedbackText.innerText = "Oups !";
+                feedbackText.className = "text-2xl font-bold mb-2 text-red-500";
+                correctAnswerDisplay.innerHTML = `La bonne orthographe était : <span class="font-bold text-blue-600">${wordList[currentWordIndex]}</span>`;
+            }
+        }
+
+        function nextWord() {
+            currentWordIndex++;
+            updateProgress();
+            
+            if (currentWordIndex < wordList.length) {
+                answerInput.value = "";
+                feedbackZone.classList.add('hidden');
+                playZone.classList.remove('hidden');
+                speakWord(wordList[currentWordIndex]);
+                answerInput.focus();
+            } else {
+                showFinalResults();
+            }
+        }
+
+        function updateProgress() {
+            const percentage = (currentWordIndex / wordList.length) * 100;
+            progressBar.style.width = percentage + "%";
+        }
+
+        function showFinalResults() {
+            feedbackZone.classList.add('hidden');
+            resultZone.classList.remove('hidden');
+            document.getElementById('final-score').innerText = `Tu as trouvé ${score} mots sur ${wordList.length} !`;
+        }
+
+        // Event Listeners
+        listenBtn.addEventListener('click', () => speakWord(wordList[currentWordIndex]));
+        
+        checkBtn.addEventListener('click', checkAnswer);
+        
+        nextBtn.addEventListener('click', nextWord);
+
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkBtn.click();
+        });
+
+        // Lancement initial
+        window.onload = () => {
+            updateProgress();
+            // Petit délai pour laisser le temps à l'API Speech de s'initialiser
+            setTimeout(() => speakWord(wordList[0]), 500);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Aventure des Arrondis</title>
+    <style>
+        /* --- STYLE VISUEL ADAPTÉ AUX ENFANTS --- */
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #e0f7fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #006064;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 0px #4dd0e1;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            text-align: center;
+            border: 4px solid #00bcd4;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: #f1f8e9;
+            padding: 15px;
+            border-radius: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #558b2f;
+        }
+
+        select, input {
+            padding: 10px;
+            font-size: 1.2em;
+            border: 2px solid #c5e1a5;
+            border-radius: 10px;
+            font-family: 'Fredoka', sans-serif;
+            outline: none;
+        }
+
+        select:focus, input:focus {
+            border-color: #7cb342;
+        }
+
+        button.mode-btn {
+            padding: 10px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background-color: #cfd8dc;
+            transition: transform 0.2s, background-color 0.2s;
+            font-weight: bold;
+        }
+
+        button.mode-btn.active {
+            background-color: #ff9800;
+            color: white;
+            box-shadow: 0 4px 0 #e65100;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        button.action-btn {
+            background-color: #00bcd4;
+            color: white;
+            font-size: 1.5em;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #00838f;
+            transition: transform 0.1s;
+        }
+
+        button.action-btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        button.reset-btn {
+            background-color: #ff5252;
+            color: white;
+            font-size: 1.2em;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #c62828;
+            transition: transform 0.1s;
+        }
+
+        button.reset-btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        #canvas-container {
+            margin-top: 30px;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        canvas {
+            background-color: #ffffff;
+            border-radius: 10px;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            font-size: 1.4em;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #fff3e0;
+            color: #e65100;
+            display: none; /* Caché au début */
+        }
+
+        .emoji {
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎯 Maître des Arrondis</h1>
+
+    <div class="container">
+        
+        <!-- Choix du Mode -->
+        <div style="margin-bottom: 20px;">
+            <button class="mode-btn active" onclick="setMode('entier')" id="btn-entier">123 Nombres Entiers</button>
+            <button class="mode-btn" onclick="setMode('decimal')" id="btn-decimal">12,3 Nombres Décimaux</button>
+        </div>
+
+        <!-- Contrôles -->
+        <div class="controls">
+            <div class="control-group">
+                <label for="precision">Je veux arrondir à :</label>
+                <select id="precision">
+                    <!-- Options remplies par JS -->
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="numberInput">Mon nombre :</label>
+                <input type="number" id="numberInput" step="any" placeholder="Ex: 145">
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="action-btn" onclick="calculateAndDraw()">Voir l'arrondi ! 🚀</button>
+            <button class="reset-btn" onclick="resetApp()">Réinitialiser 🧹</button>
+        </div>
+
+        <!-- Zone de résultat textuel -->
+        <div id="resultText" class="result-box"></div>
+
+        <!-- Zone graphique -->
+        <div id="canvas-container">
+            <canvas id="numberLine" width="700" height="200"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGIQUE JAVASCRIPT ---
+
+        let currentMode = 'entier';
+        const canvas = document.getElementById('numberLine');
+        const ctx = canvas.getContext('2d');
+
+        const optionsEntier = [
+            { val: 10, label: "à la dizaine près (10)" },
+            { val: 100, label: "à la centaine près (100)" },
+            { val: 1000, label: "au millier près (1000)" }
+        ];
+
+        const optionsDecimal = [
+            { val: 1, label: "à l'unité près (1)" },
+            { val: 0.1, label: "au dixième près (0,1)" },
+            { val: 0.01, label: "au centième près (0,01)" }
+        ];
+
+        function init() {
+            setMode('entier');
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            
+            document.getElementById('btn-entier').className = mode === 'entier' ? 'mode-btn active' : 'mode-btn';
+            document.getElementById('btn-decimal').className = mode === 'decimal' ? 'mode-btn active' : 'mode-btn';
+
+            const select = document.getElementById('precision');
+            select.innerHTML = '';
+            const opts = mode === 'entier' ? optionsEntier : optionsDecimal;
+            
+            opts.forEach(opt => {
+                const el = document.createElement('option');
+                el.value = opt.val;
+                el.textContent = opt.label;
+                select.appendChild(el);
+            });
+
+            const input = document.getElementById('numberInput');
+            input.value = '';
+            input.placeholder = mode === 'entier' ? "Ex: 148" : "Ex: 4,72";
+            
+            document.getElementById('resultText').style.display = 'none';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function resetApp() {
+            const input = document.getElementById('numberInput');
+            input.value = '';
+            document.getElementById('resultText').style.display = 'none';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            input.focus();
+        }
+
+        function calculateAndDraw() {
+            const inputVal = parseFloat(document.getElementById('numberInput').value.replace(',', '.'));
+            const precision = parseFloat(document.getElementById('precision').value);
+
+            if (isNaN(inputVal)) {
+                alert("Oups ! Tu as oublié de saisir un nombre valide.");
+                return;
+            }
+
+            const factor = 1 / precision; 
+            let lowerBound, upperBound, rounded;
+
+            if (precision >= 1) {
+                 lowerBound = Math.floor(inputVal / precision) * precision;
+                 upperBound = lowerBound + precision;
+                 rounded = Math.round(inputVal / precision) * precision;
+            } else {
+                let m = Math.round(1/precision);
+                lowerBound = Math.floor(inputVal * m) / m;
+                upperBound = (Math.floor(inputVal * m) + 1) / m;
+                rounded = Math.round(inputVal * m) / m;
+            }
+
+            draw(inputVal, lowerBound, upperBound, rounded, precision);
+            showResult(inputVal, rounded, precision);
+        }
+
+        function showResult(original, rounded, precision) {
+            const box = document.getElementById('resultText');
+            box.style.display = 'block';
+            
+            let message = ``;
+            if (original === rounded) {
+                message = `Le nombre <strong>${original}</strong> est déjà arrondi ! <span class="emoji">✨</span>`;
+            } else {
+                message = `Le nombre <strong>${original}</strong> est plus proche de <strong>${rounded}</strong>. <br> 
+                L'arrondi est donc : <strong style="color:#2e7d32; font-size:1.2em;">${rounded}</strong> <span class="emoji">✅</span>`;
+            }
+            box.innerHTML = message;
+        }
+
+        function draw(val, min, max, rounded, step) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const padding = 50;
+            const w = canvas.width - (padding * 2);
+            const y = 100;
+
+            const getX = (v) => {
+                return padding + ((v - min) / (max - min)) * w;
+            };
+
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(canvas.width - padding, y);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+
+            drawTick(min, y, true);
+            drawTick(max, y, true);
+
+            const mid = (min + max) / 2;
+            let midDisplay = parseFloat(mid.toPrecision(10));
+            drawTick(midDisplay, y, false, true);
+
+            const userX = getX(val);
+            
+            ctx.beginPath();
+            ctx.setLineDash([5, 5]);
+            ctx.moveTo(userX, y);
+            ctx.lineTo(userX, y - 40);
+            ctx.strokeStyle = '#2196f3';
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.beginPath();
+            ctx.arc(userX, y, 8, 0, 2 * Math.PI);
+            ctx.fillStyle = '#2196f3';
+            ctx.fill();
+
+            ctx.font = 'bold 16px Fredoka';
+            ctx.fillStyle = '#2196f3';
+            ctx.textAlign = 'center';
+            ctx.fillText(val, userX, y - 50);
+
+            const roundedX = getX(rounded);
+            ctx.beginPath();
+            ctx.arc(roundedX, y, 15, 0, 2 * Math.PI);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#e65100';
+            ctx.stroke();
+
+            drawArrow(userX, y + 20, roundedX, y + 20);
+
+            function drawTick(valStr, yPos, isMajor, isMid = false) {
+                const xPos = getX(valStr);
+                ctx.beginPath();
+                ctx.moveTo(xPos, yPos - 10);
+                ctx.lineTo(xPos, yPos + 10);
+                ctx.lineWidth = isMajor ? 3 : 2;
+                ctx.strokeStyle = isMid ? '#9e9e9e' : '#333';
+                ctx.stroke();
+
+                ctx.font = isMajor ? 'bold 18px Fredoka' : '14px Fredoka';
+                ctx.fillStyle = isMid ? '#757575' : '#333';
+                ctx.textAlign = 'center';
+                
+                let displayTxt = parseFloat(valStr.toPrecision(10));
+                ctx.fillText(displayTxt, xPos, yPos + 35);
+            }
+
+            function drawArrow(fromX, fromY, toX, toY) {
+                if (Math.abs(fromX - toX) < 5) return;
+                const headlen = 10; 
+                const angle = Math.atan2(toY - fromY, toX - fromX);
+
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#e65100';
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+                ctx.fillStyle = '#e65100';
+                ctx.fill();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualiseur d'Arrondissement CM1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* Styles généraux pour un look agréable et enfantin */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e6f3ff; /* Bleu ciel doux */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 950px;
+            width: 100%;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 50, 100, 0.15);
+            border: 4px solid #3b82f6; /* Bordure bleue */
+        }
+        
+        /* Titres et Boutons */
+        h1 { color: #1e40af; } /* Bleu foncé */
+        h2 { color: #10b981; } /* Vert vif */
+        
+        /* Conteneur de la Droite Numérique */
+        .number-line-container {
+            position: relative;
+            height: 200px; /* Plus de hauteur pour la flèche */
+            margin-top: 40px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 5px solid #1f2937; /* Ligne noire principale, très épaisse */
+        }
+        
+        /* Graduations */
+        .tick {
+            position: absolute;
+            bottom: -5px;
+            z-index: 5;
+        }
+        .major-tick { /* Bornes */
+            height: 25px;
+            width: 5px;
+            background-color: #1f2937;
+        }
+        .minor-tick { /* Subdivisions */
+            height: 15px;
+            width: 2px;
+            background-color: #3b82f6; /* Bleu */
+        }
+        
+        /* Labels des Graduations */
+        .line-label {
+            position: absolute;
+            top: 25px; 
+            font-weight: 800;
+            color: #1f2937;
+            white-space: nowrap;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        /* Étiquettes des Graduations Mineures (en dessous) */
+        .minor-label {
+            position: absolute;
+            bottom: -35px;
+            font-size: 0.9rem;
+            color: #4b5563; /* Gris foncé */
+            white-space: nowrap;
+            font-weight: 600;
+            transform: translateX(-50%);
+        }
+
+        /* Points Marqueurs */
+        .value-point {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            bottom: -13px;
+            border: 4px solid white;
+            z-index: 20;
+            cursor: default;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease-in-out;
+        }
+        .point-input { background-color: #ef4444; } /* Rouge Éclatant */
+        .point-rounded { background-color: #10b981; } /* Vert Éclatant */
+        .point-half { background-color: #f59e0b; } /* Jaune Miel */
+        
+        /* Labels des points clés (Hauteur adaptée) */
+        .point-label-input {
+            position: absolute;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #ffffff; /* Texte blanc sur fond rouge */
+            top: -65px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 10px;
+            border-radius: 12px;
+            background: #ef4444;
+            border: 3px solid #f87171;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            white-space: nowrap;
+        }
+        .point-label-mid {
+            position: absolute;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f59e0b;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+        .point-label-rounded {
+            position: absolute;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #ffffff; /* Texte blanc sur fond vert */
+            top: 65px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 10px;
+            border-radius: 12px;
+            background: #10b981;
+            border: 3px solid #34d399;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            white-space: nowrap;
+        }
+
+        /* Masquer la zone de résultats par défaut */
+        .hidden-result {
+            display: none;
+        }
+
+        /* NOUVEAUX STYLES pour la Grande Flèche de direction */
+        .arrow-container {
+            position: absolute;
+            height: 120px; /* Hauteur de l'ensemble flèche */
+            width: 30px;
+            top: 50%; /* Positionnement vertical au milieu du conteneur */
+            transform: translate(-50%, -50%); /* Centrer la flèche sur son point (left: X%) */
+            z-index: 25; 
+            align-items: center;
+            transition: all 0.3s ease-in-out;
+            opacity: 0.95;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            padding-bottom: 5px; /* Pour soulever légèrement */
+        }
+        
+        /* Flèche UP (Vert) */
+        .arrow-container.up {
+             display: flex;
+             flex-direction: column; /* La tête (head) sera en haut */
+        }
+        .arrow-stem-up {
+            width: 15px;
+            height: 90px; /* Longueur de la tige */
+            background-color: #10b981; 
+            border-radius: 4px 4px 0 0;
+        }
+        .arrow-head-up {
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid #10b981; /* Pointe vers le haut */
+        }
+
+        /* Flèche DOWN (Rouge) */
+        .arrow-container.down {
+             display: flex;
+             flex-direction: column-reverse; /* La tête (head) sera en bas */
+        }
+        .arrow-stem-down {
+            width: 15px;
+            height: 90px; 
+            background-color: #ef4444; 
+            border-radius: 0 0 4px 4px;
+        }
+        .arrow-head-down {
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ef4444; /* Pointe vers le bas */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-4xl font-black text-center mb-6 pb-3">🎯 La Droite Magique des Arrondis !</h1>
+        
+        
+
+<div class="p-5 bg-yellow-50 border-l-8 border-yellow-400 rounded-xl mb-8">
+            <h2 class="text-2xl font-bold mb-4">1. Mon Nombre et la Règle</h2>
+            <div class="flex flex-col md:flex-row gap-4 items-end">
+                <div class="flex-1">
+                    <label for="inputNumber" class="block text-lg font-semibold text-gray-700">Je veux arrondir le nombre :</label>
+                    <input type="number" id="inputNumber" value="37" min="0" max="999999" step="1" class="mt-1 block w-full">
+                </div>
+                <div class="flex-1">
+                    <label for="roundingRank" class="block text-lg font-semibold text-gray-700">J'arrondis à la :</label>
+                    <select id="roundingRank" class="mt-1 block w-full">
+                        <option value="10" selected>Dizaine (10)</option>
+                        <option value="100">Centaine (100)</option>
+                        <option value="1000">Millier (1000)</option>
+                    </select>
+                </div>
+                
+                
+
+<div class="flex gap-4 w-full md:w-auto">
+                    <button onclick="visualizeRounding()" class="flex-1 px-8 py-3 bg-green-600 text-white font-extrabold rounded-xl shadow-lg hover:bg-green-700 transition duration-150 transform hover:scale-105">
+                        Voir la Droite !
+                    </button>
+                    <button onclick="resetVisualization()" class="flex-1 px-4 py-3 bg-red-500 text-white font-extrabold rounded-xl shadow-lg hover:bg-red-600 transition duration-150 transform hover:scale-105">
+                        Nouveau Calcul
+                    </button>
+                </div>
+
+            </div>
+            <p id="errorMsg" class="text-red-600 text-base mt-4 font-bold hidden">Attention : Saisissez un nombre entier valide entre 0 et 999 999.</p>
+        </div>
+
+        
+
+<div id="lineOutput" class="p-6 bg-gray-50 rounded-xl border-4 border-gray-300 hidden-result">
+            <h2 class="text-2xl font-black text-center mb-6">2. La Droite Numérique Expliquée</h2>
+            
+            <div id="numberLine" class="number-line-container">
+                
+
+</div>
+            
+            <div class="mt-8 text-center">
+                <p id="roundingRule" class="text-lg font-medium p-4 bg-yellow-100 rounded-lg border-2 border-yellow-500 text-gray-800"></p>
+                <p id="roundingResult" class="text-4xl font-black mt-4 p-4 rounded-lg border-4 border-green-600 bg-green-50 text-green-800 shadow-xl inline-block"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // DOM elements
+        const inputNumberInput = document.getElementById('inputNumber');
+        const roundingRankSelect = document.getElementById('roundingRank');
+        const numberLine = document.getElementById('numberLine');
+        const roundingResult = document.getElementById('roundingResult');
+        const roundingRule = document.getElementById('roundingRule');
+        const errorMsg = document.getElementById('errorMsg');
+        const lineOutput = document.getElementById('lineOutput'); 
+
+        // Helper: Round to the target multiple
+        function roundToNearest(value, target) {
+            return Math.round(value / target) * target;
+        }
+        
+        // Fonction pour réinitialiser l'interface
+        function resetVisualization() {
+            // Effacer la zone de visualisation
+            numberLine.innerHTML = '';
+            roundingRule.textContent = '';
+            roundingResult.textContent = '';
+            errorMsg.classList.add('hidden');
+            
+            // Masquer le conteneur de résultats
+            lineOutput.classList.add('hidden-result');
+            
+            // Mettre le focus sur le champ de saisie du nombre
+            inputNumberInput.focus();
+        }
+
+        // Main visualization function
+        function visualizeRounding() {
+            numberLine.innerHTML = '';
+            errorMsg.classList.add('hidden');
+            lineOutput.classList.remove('hidden-result'); // Afficher la zone de résultats
+
+            // 1. Get and validate inputs
+            const inputNum = parseInt(inputNumberInput.value, 10);
+            const rank = parseInt(roundingRankSelect.value, 10);
+
+            if (isNaN(inputNum) || inputNum < 0 || inputNum > 999999) {
+                errorMsg.classList.remove('hidden');
+                lineOutput.classList.add('hidden-result'); // Masquer si erreur
+                return;
+            }
+
+            // 2. Calculate key values
+            const roundedValue = roundToNearest(inputNum, rank);
+            // Lower Bound 
+            const lowerBound = Math.floor(inputNum / rank) * rank; 
+            const upperBound = lowerBound + rank; 
+            const midPoint = lowerBound + (rank / 2);
+            
+            const contextStart = lowerBound;
+            const contextEnd = upperBound;
+            const contextRange = contextEnd - contextStart;
+            
+            // Subdivisions (10 per main segment)
+            const minorSubdivisionsPerSegment = 10;
+            const minorStep = rank / minorSubdivisionsPerSegment; 
+
+            // 3. Display Result and Rule (in French)
+            const rankText = roundingRankSelect.options[roundingRankSelect.selectedIndex].text.split(' ')[0].toLowerCase();
+            
+            let ruleMessage = "";
+
+            if (inputNum === midPoint) {
+                // Special case for the midpoint (Rule of 5)
+                ruleMessage = `RÈGLE du MILIEU : Le nombre ${inputNum} est exactement au milieu (${midPoint}). Quand c'est 5 ou plus, on monte ! J'arrondis TOUJOURS au multiple du haut (${upperBound}).`;
+            } else if (inputNum < midPoint) {
+                // Round down
+                const distance = midPoint - inputNum;
+                ruleMessage = `RÈGLE du BAS : Le nombre ${inputNum} est PLUS PROCHE de ${lowerBound} que de ${upperBound}. Il est à ${Math.abs(inputNum - midPoint)} unité(s) du milieu. J'arrondis au multiple du bas.`;
+            } else {
+                // Round up
+                const distance = inputNum - midPoint;
+                ruleMessage = `RÈGLE du HAUT : Le nombre ${inputNum} est PLUS PROCHE de ${upperBound} que de ${lowerBound}. Il est à ${Math.abs(inputNum - midPoint)} unité(s) du milieu. J'arrondis au multiple du haut.`;
+            }
+
+            // Update result elements
+            roundingRule.textContent = ruleMessage;
+            roundingResult.textContent = `Mon nombre ${inputNum} arrondi à la ${rankText} est : ${roundedValue}`;
+
+            // 4. Draw all ticks 
+
+            // Position mapping function [0% to 100%]
+            const getPos = (val) => ((val - contextStart) / contextRange) * 100;
+            
+            for (let i = 0; i <= minorSubdivisionsPerSegment; i++) {
+                const currentValue = contextStart + (i * minorStep);
+                const position = getPos(currentValue);
+                
+                const isMajorTick = (i === 0 || i === minorSubdivisionsPerSegment);
+                const isHalfTick = (i === minorSubdivisionsPerSegment / 2); // The midpoint
+
+                // Draw the tick
+                if (isMajorTick) {
+                    // Major Ticks (Bounds)
+                    numberLine.innerHTML += `
+                        <div class="tick major-tick" style="left: ${position}%;"></div>
+                        <div class="line-label" style="left: ${position}%; transform: translateX(-50%);">
+                            ${currentValue}
+                        </div>
+                    `;
+                } else {
+                    // Minor Ticks (Subdivisions)
+                    numberLine.innerHTML += `<div class="tick minor-tick" style="left: ${position}%;"></div>`;
+                    
+                    // Display value label for all subdivisions (except bounds)
+                    numberLine.innerHTML += `
+                        <span class="minor-label" style="left: ${position}%;">
+                            ${currentValue}
+                        </span>
+                    `;
+                }
+                
+                // Add the Midpoint marker on the line
+                if (isHalfTick) {
+                    numberLine.innerHTML += `<div class="value-point point-half" style="left: ${position}%;">
+                                                <span class="point-label-mid">
+                                                    ${midPoint} (Milieu)
+                                                </span>
+                                            </div>`;
+                }
+            }
+
+            // 5. Place important markers (Input and Rounded Value)
+
+            // B) Input Number (Number to round - above the line)
+            const inputPos = getPos(inputNum);
+            numberLine.innerHTML += `<div class="value-point point-input" style="left: ${inputPos}%;">
+                                         <span class="point-label-input">
+                                            ${inputNum} Nombre
+                                         </span>
+                                     </div>`;
+
+            // C) Rounded Value (Result - below the line)
+            const roundedPos = getPos(roundedValue);
+            numberLine.innerHTML += `<div class="value-point point-rounded" style="left: ${roundedPos}%;">
+                                         <span class="point-label-rounded">
+                                            Arrondi !
+                                         </span>
+                                     </div>`;
+            
+            // 6. Highlight the rounding zone
+            let highlightLeft, highlightWidth;
+            
+            if (roundedValue === lowerBound) {
+                // Round down zone (Red/Bottom zone)
+                highlightLeft = getPos(lowerBound);
+                highlightWidth = getPos(midPoint) - highlightLeft;
+            } else {
+                // Round up zone (Green/Top zone)
+                highlightLeft = getPos(midPoint);
+                highlightWidth = getPos(upperBound) - highlightLeft;
+            }
+
+            // Choose the correct color for the highlight zone
+            const highlightColor = (roundedValue === lowerBound) ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'; 
+
+            numberLine.innerHTML += `
+                <div style="position: absolute; top: 0; left: ${highlightLeft}%; width: ${highlightWidth}%; height: 100%; background-color: ${highlightColor}; opacity: 0.8; transition: width 0.5s; border-radius: 10px;"></div>
+            `;
+            
+            // Re-draw the central line to be on top of the highlight
+            numberLine.innerHTML += '<div style="position: absolute; width: 100%; height: 5px; background-color: #1f2937; bottom: -5px;"></div>';
+
+            // 7. Add the large, directional arrows
+            const arrowPosition = inputPos; 
+
+            if (roundedValue === lowerBound) {
+                // Arrow pointing DOWN (Red)
+                numberLine.innerHTML += `
+                    <div class="arrow-container down" style="left: ${arrowPosition}%;">
+                        <div class="arrow-head-down"></div>
+                        <div class="arrow-stem-down"></div>
+                    </div>
+                `;
+            } else {
+                // Arrow pointing UP (Green)
+                numberLine.innerHTML += `
+                    <div class="arrow-container up" style="left: ${arrowPosition}%;">
+                        <div class="arrow-stem-up"></div>
+                        <div class="arrow-head-up"></div>
+                    </div>
+                `;
+            }
+        }
+
+        // Application initialization
+        window.onload = () => {
+            inputNumberInput.step = '1';
+            visualizeRounding(); 
+            resetVisualization();
+        };
+    </script>
+</body>
+</html>

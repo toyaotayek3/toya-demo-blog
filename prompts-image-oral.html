@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorateur de Prompts Pédagogiques - Maîtrise de l'Oral</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Neutral Scholar (Slate-50 bg, Slate-800 text, Indigo-600 Primary, Amber-500 Accents) -->
+    
+    <!-- Application Structure Plan: 
+    The SPA is structured as a dashboard/explorer to manage the 60 pedagogical prompts effectively without overwhelming the user with a massive scroll. 
+    1. Header/Hero: Introduces the tool's purpose (linking to BO objectives).
+    2. Analytical Overview (Chart section): A Radar chart visualizes the progression of cognitive skills across cycles (Description -> Philosophy) based on the report's BO objectives, providing immediate context on *why* the prompts change.
+    3. Interactive Explorer: The core feature. A filterable grid system. Users select a 'Cycle' which reveals specific 'Grades'. The grid then displays the 5 relevant prompt cards. 
+    4. Card Design: Focuses on usability for teachers. The "Piste Orale" is prominent. The technical English prompt is contained within a stylized block with a one-click "Copy" function to streamline the workflow for image generation. 
+    This structure was chosen to transform a static list into a functional teaching tool. -->
+
+    <!-- Visualization & Content Choices: 
+    - Progression of Skills (Overview) -> Goal: Show how expectations evolve -> Viz: Radar Chart (Chart.js). -> Justification: Best for showing multivariate data (skills) across different categories (cycles). No SVG used.
+    - Prompt Library -> Goal: Easy access and filtering -> Viz: Interactive CSS Grid with Filter Buttons. -> Justification: Allows quick drill-down to specific grade levels without scrolling through 60 items.
+    - Prompt Details -> Goal: Usability -> Viz: Interactive Cards with Clipboard API. -> Justification: Makes the technical english prompt easy to use in tools like Nano Banana, while keeping the pedagogical French text clear. 
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. Unicode used for icons. -->
+
+    <style>
+        /* Specific Chart Container Requirements */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Constrain max width for readability */
+            margin-left: auto;
+            margin-right: auto;
+            height: 40vh; /* Responsive base height */
+            min-height: 300px;
+            max-height: 450px; /* Prevent vertical overflow */
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 50vh;
+                max-height: 500px;
+            }
+        }
+
+        /* Custom scrollbar for prompt text area */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* Toast Animation */
+        .toast-enter {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-200 selection:text-indigo-900">
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">🗣️</span>
+                    <span class="font-bold text-xl text-slate-900 tracking-tight">Image & Parole</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#overview" class="text-slate-500 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors">Progression</a>
+                    <a href="#explorer" class="text-slate-500 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors">Explorateur</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div class="text-center max-w-3xl mx-auto">
+            <h1 class="text-4xl font-extrabold text-slate-900 sm:text-5xl md:text-6xl tracking-tight mb-6">
+                L'Image comme <span class="text-indigo-600">Déclencheur</span> de Parole
+            </h1>
+            <p class="mt-3 max-w-md mx-auto text-base text-slate-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
+                Un guide pédagogique interactif pour développer la maîtrise de l'oral, du Grade 1 au Grade 12. Explorez 60 situations visuelles génératives alignées sur les exigences du Bulletin Officiel.
+            </p>
+            <div class="mt-8 flex justify-center">
+                <a href="#explorer" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Commencer l'exploration ⭢
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Section: Overview Chart -->
+        <section id="overview" class="py-16 bg-white border-y border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-10 text-center max-w-2xl mx-auto">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4">Évolution des Compétences Orales</h2>
+                    <p class="text-slate-600">
+                        Cette section illustre comment les exigences pédagogiques évoluent à travers les cycles. Le graphique ci-dessous modélise la transition d'une approche descriptive et narrative (Cycle 2) vers une maîtrise de l'argumentation complexe et de l'abstraction philosophique (Lycée), justifiant ainsi la complexité croissante des images générées.
+                    </p>
+                </div>
+                
+                <!-- Chart Container as required -->
+                <div class="w-full flex justify-center items-center">
+                    <div class="chart-container bg-slate-50 rounded-xl p-4 shadow-inner border border-slate-100">
+                        <canvas id="skillsChart"></canvas>
+                    </div>
+                </div>
+                <div class="mt-6 text-center text-sm text-slate-500 italic">
+                    Modélisation indicative basée sur les objectifs du B.O. par cycle.
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Interactive Explorer -->
+        <section id="explorer" class="py-16 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-10 text-center max-w-3xl mx-auto">
+                    <h2 class="text-3xl font-bold text-slate-900 mb-4">Bibliothèque de Prompts</h2>
+                    <p class="text-slate-600">
+                        Naviguez à travers les cycles et les niveaux pour trouver la situation pédagogique adaptée. Chaque carte contient l'objectif, la piste de réflexion orale pour l'élève, et le prompt technique en anglais (optimisé pour Nano Banana/Imagen) prêt à être copié pour générer le support visuel.
+                    </p>
+                </div>
+
+                <!-- Filters -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-8">
+                    <div class="mb-6">
+                        <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">1. Choisir un Cycle</h3>
+                        <div class="flex flex-wrap gap-2" id="cycle-filters">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    
+                    <div id="grade-filter-container" class="hidden transition-all duration-300">
+                        <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">2. Choisir un Niveau</h3>
+                        <div class="flex flex-wrap gap-2" id="grade-filters">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Context Header -->
+                <div class="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
+                    <h3 class="text-2xl font-bold text-slate-800" id="results-title">Sélectionnez un niveau</h3>
+                    <span class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded-full" id="results-count">0 situation(s)</span>
+                </div>
+
+                <!-- Grid Container -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="cards-grid">
+                    <!-- Cards populated by JS -->
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-900 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-400">
+            <p>Conçu pour l'accompagnement pédagogique de l'oralité. Intégration de prompts génératifs optimisés.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-3 rounded shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-2">
+        <span class="text-green-400">✓</span>
+        <span>Prompt copié dans le presse-papiers !</span>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Data Storage ---
+        // Complete extraction of the 60 prompts from the source report
+        const promptsData = [
+            // CYCLE 2
+            { cycle: "Cycle 2", grade: "Grade 1 (CP)", theme: "Nommer, Décrire et Identifier", title: "L'Absurde du Quotidien", prompt: "A bright primary school classroom floating in deep space. Wooden desks, chairs, and a blackboard floating in zero gravity. Soft starlight coming through windows. Children's book illustration style, luminous watercolor, whimsical.", piste: "Qu'est-ce qui est étrange ? Nomme les objets qui volent." },
+            { cycle: "Cycle 2", grade: "Grade 1 (CP)", theme: "Nommer, Décrire et Identifier", title: "L'Émotion", prompt: "Close-up of a small, cute red fox wearing a bright yellow raincoat standing under the rain. The fox looks sad with expressive eyes. Grey sky, sharp raindrops, hyper-realistic photography, 50mm, f/2.8.", piste: "Que ressent-il ? Pourquoi ?" },
+            { cycle: "Cycle 2", grade: "Grade 1 (CP)", theme: "Nommer, Décrire et Identifier", title: "Les Échelles", prompt: "A tiny boy the size of an ant trying to climb a giant, shiny red apple. Huge blades of grass surrounding him. Sunbeams filtering through, 3D Pixar style, vibrant colors, playful atmosphere.", piste: "Compare les tailles. Que va-t-il se passer ?" },
+            { cycle: "Cycle 2", grade: "Grade 1 (CP)", theme: "Nommer, Décrire et Identifier", title: "Le Merveilleux", prompt: "A magical forest where trees have pink cotton candy leaves. A path made of glowing golden stones. Golden hour warm lighting, fairy tale illustration, intricate details.", piste: "Aimerais-tu y aller ? Décris les goûts et les textures." },
+            { cycle: "Cycle 2", grade: "Grade 1 (CP)", theme: "Nommer, Décrire et Identifier", title: "Le Début d'une Histoire", prompt: "A young boy opening an old wooden chest in a dusty attic. Golden light beams erupting from the chest, illuminating his surprised face. Chiaroscuro lighting, digital painting style.", piste: "Qu'y a-t-il dedans ? Imagine la suite." },
+            
+            { cycle: "Cycle 2", grade: "Grade 2 (CE1)", theme: "Chronologie et Cause/Conséquence", title: "La Conséquence", prompt: "A broken porcelain vase in a thousand pieces on a living room floor. A black cat sitting nearby, looking away indifferently. Realistic daylight, interior photography.", piste: "Qui est le coupable ? Quelles sont les preuves ?" },
+            { cycle: "Cycle 2", grade: "Grade 2 (CE1)", theme: "Chronologie et Cause/Conséquence", title: "L'Invention", prompt: "A flying bicycle with leather bat wings and a small steam engine. Parked on a Parisian rooftop at sunset. Steampunk style, highly detailed technical sketch.", piste: "Comment ça marche ? À quoi ça sert ?" },
+            { cycle: "Cycle 2", grade: "Grade 2 (CE1)", theme: "Chronologie et Cause/Conséquence", title: "L'Implicite", prompt: "Three brown bears wearing human clothes looking surprised at a tiny empty bed with messy blankets in a cozy wooden cabin. Classic storybook illustration style.", piste: "À quel conte cela te fait-il penser ? Que disent les ours ?" },
+            { cycle: "Cycle 2", grade: "Grade 2 (CE1)", theme: "Chronologie et Cause/Conséquence", title: "Le Point de Vue", prompt: "POV shot from a dog's perspective looking up at a human hand holding a dog treat just out of reach. Indoor soft lighting, wide angle lens, realistic photography.", piste: "Si tu étais le chien, que dirais-tu ?" },
+            { cycle: "Cycle 2", grade: "Grade 2 (CE1)", theme: "Chronologie et Cause/Conséquence", title: "Le Dialogue", prompt: "Two astronauts in high-tech suits on Mars standing face to face. One points at a small, strange green plant growing in the red sand. Dramatic lighting, hyper-realistic 3D render.", piste: "Imagine le dialogue entre les deux personnages." },
+
+            { cycle: "Cycle 2", grade: "Grade 3 (CE2)", theme: "Comparaison et Débats Simples", title: "L'Anachronisme", prompt: "A knight in shining medieval armor sitting in a modern subway train, holding and reading a smartphone. Urban neon lighting, hyper-realistic photography.", piste: "Trouve l'erreur. Comment est-il arrivé là ?" },
+            { cycle: "Cycle 2", grade: "Grade 3 (CE2)", theme: "Comparaison et Débats Simples", title: "L'Écologie", prompt: "Split screen image. Left side: a crystal clear river with fish and lush green trees. Right side: the same river dried up, filled with plastic waste. Editorial illustration style.", piste: "Compare. Comment empêcher la pollution ?" },
+            { cycle: "Cycle 2", grade: "Grade 3 (CE2)", theme: "Comparaison et Débats Simples", title: "Le Mystère", prompt: "A dark alley at night. A mysterious man walks under a streetlamp, but he casts two shadows in different directions. Film noir style, foggy, high contrast.", piste: "Formule une hypothèse sur ce phénomène." },
+            { cycle: "Cycle 2", grade: "Grade 3 (CE2)", theme: "Comparaison et Débats Simples", title: "La Description Séquentielle", prompt: "A complex Rube Goldberg machine. A marble hitting a domino, which triggers a spring, which lights a candle. Studio lighting, isometric 3D render, technical detail.", piste: "Explique le fonctionnement étape par étape." },
+            { cycle: "Cycle 2", grade: "Grade 3 (CE2)", theme: "Comparaison et Débats Simples", title: "Le Dilemme", prompt: "A child standing before two doors: one bright door covered in flowers, one heavy iron door with many locks. Dramatic contrast, fantasy concept art.", piste: "Laquelle choisis-tu ? Donne deux arguments." },
+
+            // CYCLE 3
+            { cycle: "Cycle 3", grade: "Grade 4 (CM1)", theme: "Histoire, Géographie et Récit", title: "Immersion Historique", prompt: "Bustling market in Ancient Rome. Merchants selling amphorae, citizens in togas, the Colosseum in the background. Bright Mediterranean sunlight, classical oil painting style.", piste: "Décris la vie quotidienne à partir des détails." },
+            { cycle: "Cycle 3", grade: "Grade 4 (CM1)", theme: "Histoire, Géographie et Récit", title: "Extrêmes Géographiques", prompt: "A village of houses on stilts in the flooded Amazon jungle. A small boat navigating through. Morning mist, volumetric light rays, National Geographic photography.", piste: "Comment les humains s'adaptent-ils à ce milieu ?" },
+            { cycle: "Cycle 3", grade: "Grade 4 (CM1)", theme: "Histoire, Géographie et Récit", title: "Incursion Mythologique", prompt: "Pegasus, the white winged horse, landing on the roof of a glass skyscraper in modern New York. Night city lights, neon reflections, Unreal Engine 5 render.", piste: "Quelles seraient les conséquences si les mythes étaient réels ?" },
+            { cycle: "Cycle 3", grade: "Grade 4 (CM1)", theme: "Histoire, Géographie et Récit", title: "La Métamorphose", prompt: "An ancient tree whose branches are gradually turning into birds flying away into a sunset sky. Double exposure effect, warm color palette, poetic.", piste: "Invente le mythe expliquant cette transformation." },
+            { cycle: "Cycle 3", grade: "Grade 4 (CM1)", theme: "Histoire, Géographie et Récit", title: "Le Contraste Social", prompt: "A royal banquet table filled with luxury food, seen through a cold window pane by hungry children in the snow outside. 19th-century realist painting style.", piste: "Quel sentiment l'image cherche-t-elle à provoquer ?" },
+
+            { cycle: "Cycle 3", grade: "Grade 5 (CM2)", theme: "Citoyenneté et Grands Enjeux", title: "Allégorie de la République", prompt: "A modern and diverse Marianne planting a \"Liberty Tree\" with children from different backgrounds. Golden hour light, positive street art mural style.", piste: "Identifie les symboles républicains et leur sens." },
+            { cycle: "Cycle 3", grade: "Grade 5 (CM2)", theme: "Citoyenneté et Grands Enjeux", title: "Débat Éthique", prompt: "A zoo of the future where giant robot animals observe humans inside glass cages. Sterile laboratory lighting, dystopian science fiction.", piste: "Que dénonce cette image ? Débat sur la condition animale." },
+            { cycle: "Cycle 3", grade: "Grade 5 (CM2)", theme: "Citoyenneté et Grands Enjeux", title: "Aventure Épique", prompt: "A fragile sailboat fighting a colossal wave in a stormy night. Lightning striking the sky, impasto oil painting, romanticism style.", piste: "Utilise un vocabulaire riche pour exprimer la peur." },
+            { cycle: "Cycle 3", grade: "Grade 5 (CM2)", theme: "Citoyenneté et Grands Enjeux", title: "La Solidarité", prompt: "A human chain of people crossing a flooded river to save a dog stranded on a rock. Heavy rain, desaturated colors except for a red life vest. News report photo.", piste: "Définis \"l'héroïsme\" à travers cette action." },
+            { cycle: "Cycle 3", grade: "Grade 5 (CM2)", theme: "Citoyenneté et Grands Enjeux", title: "Illusion d'Optique", prompt: "An infinite Penrose staircase with people walking in loops. Black ink line drawing on white background, M.C. Escher style.", piste: "Explique le paradoxe. Pourquoi est-ce impossible ?" },
+
+            { cycle: "Cycle 3", grade: "Grade 6 (6ème)", theme: "Le Monstre, le Héros et la Création", title: "Figure du Monstre", prompt: "The Minotaur in his labyrinth, half-man half-bull, leaning against a stone wall looking tired and sad. Dim torchlight, dark textured concept art.", piste: "Un monstre est-il toujours méchant ? Pitié ou peur ?" },
+            { cycle: "Cycle 3", grade: "Grade 6 (6ème)", theme: "Le Monstre, le Héros et la Création", title: "Mythe de Création", prompt: "A cosmic giant sculpting the Earth out of stardust and magma. Deep space, luminescent nebulae, epic fantasy art.", piste: "Raconte la création du monde selon cette image." },
+            { cycle: "Cycle 3", grade: "Grade 6 (6ème)", theme: "Le Monstre, le Héros et la Création", title: "Figure du Rusé", prompt: "An anthropomorphic fox dressed as a medieval traveler, hiding a chicken behind his back while smiling at a gullible wolf. Medieval illumination style.", piste: "Comment la malice est-elle représentée physiquement ?" },
+            { cycle: "Cycle 3", grade: "Grade 6 (6ème)", theme: "Le Monstre, le Héros et la Création", title: "Héros à l'Épreuve", prompt: "A young explorer facing a bottomless pit in a bioluminescent crystal cave. Cyan glowing lights, adventure game concept art.", piste: "Quelles qualités faut-il pour réussir ?" },
+            { cycle: "Cycle 3", grade: "Grade 6 (6ème)", theme: "Le Monstre, le Héros et la Création", title: "Naissance de l'Écriture", prompt: "An Egyptian scribe focused on carving hieroglyphs into a clay tablet under the light of an oil lamp. Highly detailed historical reconstruction photo.", piste: "Pourquoi l'écriture est-elle une révolution ?" },
+
+            // CYCLE 4
+            { cycle: "Cycle 4", grade: "Grade 7 (5ème)", theme: "Voyage et Nature", title: "Rencontre des Cultures", prompt: "Marco Polo arriving at the court of Kublai Khan. Exchange of silk and spices. Luxurious Asian architecture and fabrics, academic classical painting.", piste: "Comment les voyages ont changé la vision du monde ?" },
+            { cycle: "Cycle 4", grade: "Grade 7 (5ème)", theme: "Voyage et Nature", title: "Le Chevalier", prompt: "A knight removing her helmet after battle, revealing the face of a young woman covered in mud and sweat. Dented armor, realistic brutal style.", piste: "Comment cela bouscule-t-il les stéréotypes médiévaux ?" },
+            { cycle: "Cycle 4", grade: "Grade 7 (5ème)", theme: "Voyage et Nature", title: "Force de la Nature", prompt: "An Amazonian forest swallowing the ruins of a modern city. Vines over rusting cars, deep greens, humid atmosphere, post-apocalyptic.", piste: "\"La nature reprend ses droits\" : commentez." },
+            { cycle: "Cycle 4", grade: "Grade 7 (5ème)", theme: "Voyage et Nature", title: "La Comédie", prompt: "A mischievous valet making donkey ears behind his arrogant master's back. 17th-century theater stage, stage lighting, expressive costumes.", piste: "Quels sont les ressorts comiques ici ?" },
+            { cycle: "Cycle 4", grade: "Grade 7 (5ème)", theme: "Voyage et Nature", title: "Le Survivant", prompt: "A man alone on a desert island trying to start a fire with sticks under a threatening sky. Twilight lighting, realistic photography.", piste: "Qu'est-ce qui distingue l'homme de l'animal dans la survie ?" },
+
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "Révolution Industrielle", prompt: "A 19th-century factory spewing thick black smoke that hides the sun. Child workers entering the building, grey and sepia tones, dark naturalism.", piste: "Décrivez l'impact social et écologique du 19e siècle." },
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "Fantastique", prompt: "A reflection in a Victorian mirror: a young girl looks at the mirror, but her reflection is looking away with a sinister smile. Candlelight, eerie atmosphere.", piste: "Qu'est-ce qui crée l'hésitation fantastique ici ?" },
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "Folie Urbaine", prompt: "A futuristic megalopolis seen from below, oppressive skyscrapers, saturated neon ads. Vertiginous perspective, cyberpunk style.", piste: "La ville : lieu de liberté ou d'aliénation ?" },
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "Satire Sociale", prompt: "Caricature of an obese banker eating gold coins while thin people pick up crumbs under the table. 19th-century editorial cartoon style.", piste: "Comment le dessin dénonce-t-il les inégalités ?" },
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "Suspense Épistolaire", prompt: "A trembling hand holding a letter with a broken red wax seal, a drop of blood on the paper. Macro close-up, dramatic side lighting.", piste: "Inventez le contenu de la lettre." },
+
+            { cycle: "Cycle 4", grade: "Grade 9 (3ème)", theme: "Dénoncer, Agir, Se Raconter", title: "Dystopie", prompt: "A line of identical people in grey uniforms walking with heads down. In the middle, one person wears a bright red jacket and looks at the sky. Totalitarian aesthetic.", piste: "Pourquoi l'individualité est-elle réprimée en dystopie ?" },
+            { cycle: "Cycle 4", grade: "Grade 9 (3ème)", theme: "Dénoncer, Agir, Se Raconter", title: "Se Raconter", prompt: "A teenager's bedroom split in two: one half tidy with childhood toys, the other half messy with rock posters and electric guitar. Natural lighting.", piste: "Comment les objets racontent-ils notre identité ?" },
+            { cycle: "Cycle 4", grade: "Grade 9 (3ème)", theme: "Dénoncer, Agir, Se Raconter", title: "Art Engagé", prompt: "A brick wall destroyed by war, featuring a trompe-l'oeil mural of a peaceful blue sky. Banksy-style street art, sharp contrast.", piste: "L'art peut-il être une arme ? Quel est le message ?" },
+            { cycle: "Cycle 4", grade: "Grade 9 (3ème)", theme: "Dénoncer, Agir, Se Raconter", title: "Devoir de Mémoire", prompt: "WW1 trenches in black and white. An exhausted soldier reading a muddy letter. Film grain, poignant realism.", piste: "Pourquoi conserver des témoignages des conflits ?" },
+            { cycle: "Cycle 4", grade: "Grade 9 (3ème)", theme: "Dénoncer, Agir, Se Raconter", title: "Agir sur le Monde", prompt: "A handful of dry earth in a hand, with a single bright green sprout growing from it. Macro photography, shallow depth of field.", piste: "Comment convaincre d'agir pour le climat ?" },
+
+            // LYCÉE
+            { cycle: "Lycée", grade: "Grade 10 (2nde)", theme: "Théâtre et Science", title: "Jeu Théâtral", prompt: "A dark theater stage. A single spotlight on an actor holding a tragic mask in front of his face, his real face behind it is smiling. Artistic photography.", piste: "Être vs Paraître au théâtre et dans la vie." },
+            { cycle: "Lycée", grade: "Grade 10 (2nde)", theme: "Théâtre et Science", title: "Controverse Scientifique", prompt: "A Renaissance scientist performing a secret dissection by candlelight. Anxious expression, chiaroscuro painting style.", piste: "Pourquoi la science s'oppose-t-elle aux dogmes ?" },
+            { cycle: "Lycée", grade: "Grade 10 (2nde)", theme: "Théâtre et Science", title: "Idéalisation vs Réalisme", prompt: "A diptych: Left, an idealized portrait of a king with airbrushed skin. Right, a hyper-realistic photo showing his wrinkles and flaws.", piste: "L'art doit-il embellir ou montrer la vérité ?" },
+            { cycle: "Lycée", grade: "Grade 10 (2nde)", theme: "Théâtre et Science", title: "L'Éloquence", prompt: "A passionate female orator in front of a blurred crowd. Her fist is raised, determined expression, dynamic political photography.", piste: "Quels sont les outils verbaux et corporels de l'éloquence ?" },
+            { cycle: "Lycée", grade: "Grade 10 (2nde)", theme: "Théâtre et Science", title: "Ironie Dramatique", prompt: "Wealthy passengers dancing in a luxury ship ballroom, while through the portholes, a massive iceberg looms in the dark. Cinematic lighting.", piste: "Expliquez le concept d'ironie dramatique." },
+
+            { cycle: "Lycée", grade: "Grade 11 (1ère)", theme: "Littérature et Pouvoir", title: "Romantisme", prompt: "A traveler from behind, wearing a dark coat, standing on a rocky peak looking over a sea of fog. Stormy sky, oil painting, Caspar David Friedrich style.", piste: "Comment le paysage reflète-t-il l'âme ?" },
+            { cycle: "Lycée", grade: "Grade 11 (1ère)", theme: "Littérature et Pouvoir", title: "Allégorie du Pouvoir", prompt: "A fierce wolf wearing a golden crown, sitting on a throne made of sleeping sheep. Dramatic theatrical lighting, Renaissance allegory style.", piste: "Analysez cette fable sur la nature du totalitarisme." },
+            { cycle: "Lycée", grade: "Grade 11 (1ère)", theme: "Littérature et Pouvoir", title: "Argumentation (Justice)", prompt: "The scales of justice with one side heavily weighed down by stacks of cash, tilting the sword on the other side. Minimalist 3D render.", piste: "La justice est-elle la même pour tous ?" },
+            { cycle: "Lycée", grade: "Grade 11 (1ère)", theme: "Littérature et Pouvoir", title: "Fleurs du Mal", prompt: "A beautiful lily flower growing in the middle of a toxic waste dump. Beauty mixed with decay, high contrast macro photography.", piste: "Commentez la création poétique à partir de \"l'ignoble\"." },
+            { cycle: "Lycée", grade: "Grade 11 (1ère)", theme: "Littérature et Pouvoir", title: "Rhétorique de l'Image", prompt: "1950s vintage cigarette ad featuring a smiling doctor claiming it's healthy. Pastel colors, retro aesthetic.", piste: "Déconstruisez l'argument d'autorité." },
+
+            { cycle: "Lycée", grade: "Grade 12 (Term)", theme: "Philosophie et Géopolitique", title: "Temps et Conscience", prompt: "Melting clocks dripping over dead branches in a barren desert next to a sleeping face. Salvador Dali surrealism style.", piste: "Le temps est-il une réalité ou une illusion ?" },
+            { cycle: "Lycée", grade: "Grade 12 (Term)", theme: "Philosophie et Géopolitique", title: "Art et Technique", prompt: "A chrome humanoid robot holding a classic painter's palette, painting a landscape on canvas with emotion. Chiaroscuro gallery lighting.", piste: "L'art est-il le propre de l'homme ? L'IA peut-elle être artiste ?" },
+            { cycle: "Lycée", grade: "Grade 12 (Term)", theme: "Philosophie et Géopolitique", title: "La Vérité", prompt: "Men chained in a cave watching shadows on a wall, unaware of the fire behind them. Conceptual painting of Plato's Allegory of the Cave.", piste: "Pourquoi est-il douloureux de sortir de l'ignorance ?" },
+            { cycle: "Lycée", grade: "Grade 12 (Term)", theme: "Philosophie et Géopolitique", title: "Liberté et Déterminisme", prompt: "A wooden puppet cutting its own strings with large scissors. Deep black background, symbolic lighting.", piste: "Sommes-nous auteurs de nos choix ou déterminés ?" },
+            { cycle: "Lycée", grade: "Grade 12 (Term)", theme: "Philosophie et Géopolitique", title: "Travail et Aliénation", prompt: "A human worker in a suit stuck inside a giant clock gear, running like a hamster in a wheel. Satirical vector illustration.", piste: "Le travail est-il libérateur ou esclavage ?" }
+        ];
+
+        // Derived Data Structure
+        const hierarchy = {};
+        promptsData.forEach(item => {
+            if (!hierarchy[item.cycle]) {
+                hierarchy[item.cycle] = new Set();
+            }
+            hierarchy[item.cycle].add(item.grade);
+        });
+
+        // State Management
+        let currentCycle = "Cycle 2";
+        let currentGrade = "Grade 1 (CP)";
+
+        // --- 2. Chart.js Initialization ---
+        function initChart() {
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            
+            // Qualitative data representing skill focus per cycle
+            const chartData = {
+                labels: ['Description/Observation', 'Récit/Imagination', 'Analyse/Comparaison', 'Argumentation/Débat', 'Abstraction/Philosophie'],
+                datasets: [
+                    {
+                        label: 'Cycle 2',
+                        data: [90, 70, 40, 20, 10],
+                        fill: true,
+                        backgroundColor: 'rgba(52, 211, 153, 0.2)', // Emerald
+                        borderColor: 'rgb(52, 211, 153)',
+                        pointBackgroundColor: 'rgb(52, 211, 153)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(52, 211, 153)'
+                    },
+                    {
+                        label: 'Cycle 3',
+                        data: [70, 90, 60, 40, 20],
+                        fill: true,
+                        backgroundColor: 'rgba(56, 189, 248, 0.2)', // Sky blue
+                        borderColor: 'rgb(56, 189, 248)',
+                        pointBackgroundColor: 'rgb(56, 189, 248)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(56, 189, 248)'
+                    },
+                    {
+                        label: 'Cycle 4',
+                        data: [40, 60, 90, 70, 40],
+                        fill: true,
+                        backgroundColor: 'rgba(251, 146, 60, 0.2)', // Orange
+                        borderColor: 'rgb(251, 146, 60)',
+                        pointBackgroundColor: 'rgb(251, 146, 60)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(251, 146, 60)'
+                    },
+                    {
+                        label: 'Lycée',
+                        data: [20, 40, 70, 90, 90],
+                        fill: true,
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)', // Indigo
+                        borderColor: 'rgb(79, 70, 229)',
+                        pointBackgroundColor: 'rgb(79, 70, 229)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(79, 70, 229)'
+                    }
+                ]
+            };
+
+            new Chart(ctx, {
+                type: 'radar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL for chart-container to work
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            pointLabels: {
+                                font: { family: "'Inter', sans-serif", size: 12 },
+                                color: '#475569'
+                            },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            padding: 12,
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 },
+                            callbacks: {
+                                label: function(context) { return context.dataset.label + ': Focus ' + context.raw + '%'; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- 3. UI Rendering & Interactions ---
+
+        function renderCycleFilters() {
+            const container = document.getElementById('cycle-filters');
+            container.innerHTML = '';
+            
+            Object.keys(hierarchy).forEach(cycle => {
+                const btn = document.createElement('button');
+                const isSelected = cycle === currentCycle;
+                btn.className = `px-4 py-2 rounded-full text-sm font-medium transition-colors border ${isSelected ? 'bg-indigo-600 text-white border-indigo-600 shadow-md' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50 hover:border-indigo-300'}`;
+                btn.textContent = cycle;
+                btn.onclick = () => {
+                    currentCycle = cycle;
+                    // Auto-select first grade in this cycle
+                    currentGrade = Array.from(hierarchy[cycle])[0];
+                    renderCycleFilters();
+                    renderGradeFilters();
+                    renderCards();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderGradeFilters() {
+            const container = document.getElementById('grade-filters');
+            const wrapper = document.getElementById('grade-filter-container');
+            container.innerHTML = '';
+            
+            if (currentCycle && hierarchy[currentCycle]) {
+                wrapper.classList.remove('hidden');
+                Array.from(hierarchy[currentCycle]).forEach(grade => {
+                    const btn = document.createElement('button');
+                    const isSelected = grade === currentGrade;
+                    btn.className = `px-4 py-2 rounded-md text-sm font-medium transition-colors border ${isSelected ? 'bg-slate-800 text-white border-slate-800 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`;
+                    btn.textContent = grade;
+                    btn.onclick = () => {
+                        currentGrade = grade;
+                        renderGradeFilters();
+                        renderCards();
+                    };
+                    container.appendChild(btn);
+                });
+            } else {
+                wrapper.classList.add('hidden');
+            }
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cards-grid');
+            const titleEl = document.getElementById('results-title');
+            const countEl = document.getElementById('results-count');
+            
+            container.innerHTML = '';
+            
+            const filteredData = promptsData.filter(item => item.cycle === currentCycle && item.grade === currentGrade);
+            
+            titleEl.textContent = `${currentCycle} - ${currentGrade}`;
+            countEl.textContent = `${filteredData.length} situation(s)`;
+            
+            // Update theme context based on the first item
+            if(filteredData.length > 0) {
+                 const themeP = document.createElement('p');
+                 themeP.className = "text-sm text-indigo-600 font-semibold mb-6 mt-[-1rem]";
+                 themeP.textContent = `Objectif thématique : ${filteredData[0].theme}`;
+                 titleEl.parentNode.insertBefore(themeP, titleEl.nextSibling);
+            }
+
+            filteredData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow flex flex-col h-full";
+                
+                // HTML structure for the card
+                card.innerHTML = `
+                    <div class="p-5 flex-grow border-b border-slate-100 bg-slate-50/50">
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="text-lg font-bold text-slate-900 leading-tight">${item.title}</h4>
+                            <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-slate-200 text-slate-500 text-xs font-bold">${index + 1}</span>
+                        </div>
+                        
+                        <!-- Piste Orale (Pedagogical focus) -->
+                        <div class="mt-4 p-4 bg-indigo-50 border-l-4 border-indigo-500 rounded-r-md">
+                            <h5 class="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                <span>🗣️</span> Piste Orale
+                            </h5>
+                            <p class="text-indigo-900 text-sm font-medium leading-relaxed italic">"${item.piste}"</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Prompt Generator Area -->
+                    <div class="p-5 bg-slate-900 text-slate-300 relative group">
+                        <div class="flex justify-between items-center mb-2">
+                            <h5 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Prompt de génération (EN)</h5>
+                            <button onclick="copyPrompt(this, \`${item.prompt.replace(/`/g, '\\`')}\`)" class="text-xs bg-slate-800 hover:bg-amber-500 hover:text-white text-slate-400 border border-slate-700 px-2 py-1 rounded transition-colors flex items-center gap-1" title="Copier le prompt">
+                                <span>📋</span> Copier
+                            </button>
+                        </div>
+                        <div class="h-24 overflow-y-auto custom-scrollbar pr-2">
+                            <p class="text-sm font-mono leading-relaxed text-slate-300 selection:bg-amber-500 selection:text-white">${item.prompt}</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- 4. Utilities ---
+        function copyPrompt(buttonElement, text) {
+            // Document.execCommand fallback for environments where clipboard API might be restricted
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Avoid scrolling to bottom
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if(successful) {
+                    showToast();
+                    // Visual feedback on button
+                    const originalHTML = buttonElement.innerHTML;
+                    buttonElement.innerHTML = `<span class="text-white">✓</span> Copié`;
+                    buttonElement.classList.add('bg-green-600', 'text-white', 'border-green-600');
+                    buttonElement.classList.remove('hover:bg-amber-500', 'text-slate-400');
+                    
+                    setTimeout(() => {
+                        buttonElement.innerHTML = originalHTML;
+                        buttonElement.classList.remove('bg-green-600', 'text-white', 'border-green-600');
+                        buttonElement.classList.add('hover:bg-amber-500', 'text-slate-400');
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0', 'translate-y-20');
+            toast.classList.add('toast-enter');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-20');
+                toast.classList.remove('toast-enter');
+            }, 3000);
+        }
+
+        // --- 5. Initialization ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            renderCycleFilters();
+            renderGradeFilters();
+            renderCards();
+        });
+
+    </script>
+</body>
+</html>

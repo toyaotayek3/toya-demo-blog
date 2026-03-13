@@ -1,0 +1,784 @@
+--- START OF FILE generateur-prompt-image-oral-fr.html ---
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur Expert - Maîtrise de l'Oral</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chosen Palette: Studio Professional (Slate-950 bg for UI, Indigo Primary, Emerald for Success, Amber for Warnings/Tips) -->
+    
+    <!-- Application Structure Plan: 
+    L'application maintient la structure en 3 panneaux (Cadrage, Studio, Visualiseur) mais améliore le flux de données :
+    1. Logique en Cascade (JS) : Le tableau plat des 60 prompts est filtré dynamiquement. Cycle -> filtre Niveaux -> filtre Sujets.
+    2. Feedback Pédagogique : Ajout d'une zone de texte dynamique sous les boutons de style pour expliquer *l'impact cognitif* du choix visuel.
+    3. Préservation du Design : Maintien du contraste fort entre la zone de configuration (claire) et la zone de code/prompt (sombre). -->
+
+    <!-- Visualization & Content Choices: 
+    - Formulaire Interactif en Cascade -> Goal: Éviter les choix impossibles -> Methode: JS Array.filter() sur les dropdowns.
+    - Panneau d'information contextuel -> Goal: Formation de l'enseignant -> Methode: Mise à jour DOM sur l'événement onClick des styles.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        .disabled-param { opacity: 0.4; cursor: not-allowed; pointer-events: none; filter: grayscale(100%); }
+        .step-number { width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: #4f46e5; color: white; font-size: 12px; margin-right: 8px; flex-shrink: 0; }
+        .prompt-preview-box { font-family: 'Courier New', Courier, monospace; min-height: 80px; }
+        
+        /* Transition douce pour les descriptions de style */
+        #styleDescription { transition: all 0.3s ease-in-out; }
+
+        /* Styles pour customTitle dynamique */
+        .custom-title-enabled {
+            border-color: #6366f1; /* indigo-500 */
+            background-color: #ffffff; /* white */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .custom-title-disabled {
+            border-color: #e2e8f0; /* slate-200 */
+            background-color: #f8fafc; /* slate-50 */
+            cursor: not-allowed;
+            color: #94a3b8; /* slate-400 */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen pb-12">
+
+    <nav class="bg-slate-900 text-white p-4 shadow-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">⚡</span>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight uppercase">Générateur Prompts Bilingue</h1>
+                    <p class="text-xs text-indigo-300">Générateur assisté et guide d'apprentissage</p>
+                </div>
+            </div>
+            <div class="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full border border-slate-700 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Mode Apprentissage Actif
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- SECTION 1: CONFIGURATION PEDAGOGIQUE -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <h2 class="text-xl font-bold mb-6 flex items-center">
+                    <span class="step-number">1</span> Cadrage Pédagogique
+                </h2>
+                
+                <p class="text-sm text-slate-500 mb-6">Sélectionnez votre classe pour découvrir les situations adaptées aux exigences du B.O.</p>
+
+                <!-- Cycle & Classe -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Cycle</label>
+                        <select id="cycleSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Classe (Niveau)</label>
+                        <select id="gradeSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer transition-colors">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Compétences & Titre -->
+                <div class="space-y-4 pt-4 border-t border-slate-100">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Compétence visée (Thème)</label>
+                        <div id="themeDisplay" class="p-3 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-700 font-medium italic flex items-center gap-2">
+                            <span>🎯</span> <span id="themeText">Chargement...</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Sujet du guide</label>
+                        <select id="titleSelect" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm mb-3 cursor-pointer focus:ring-2 focus:ring-indigo-500 shadow-sm">
+                            <!-- Populated by JS -->
+                        </select>
+                        
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-slate-400 text-sm">✎</span>
+                            </div>
+                            <input type="text" id="customTitle" placeholder="Saisissez votre sujet libre ici..." class="w-full pl-8 border rounded-lg p-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none custom-title-disabled" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: STUDIO DE STYLE (APPRENTISSAGE TECHNIQUE) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-amber-100 text-amber-800 text-[10px] font-bold px-3 py-1 rounded-bl-lg border-b border-l border-amber-200 uppercase tracking-wide">
+                    Module d'apprentissage
+                </div>
+                <h2 class="text-xl font-bold mb-6 flex items-center mt-2">
+                    <span class="step-number">2</span> Studio de Style
+                </h2>
+                
+                <div class="space-y-6">
+                    <!-- Style Artistique -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Média Artistique</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button data-style="photo" class="style-btn p-3 rounded-xl border border-slate-200 text-sm hover:border-indigo-500 transition-all flex flex-col items-center justify-center gap-1 bg-white">
+                                <span class="text-xl">📷</span>
+                                <span class="font-medium">Photoréalisme</span>
+                            </button>
+                            <button data-style="illustration" class="style-btn p-3 rounded-xl border border-slate-200 text-sm hover:border-indigo-500 transition-all flex flex-col items-center justify-center gap-1 bg-white">
+                                <span class="text-xl">🎨</span>
+                                <span class="font-medium">Illustration</span>
+                            </button>
+                            <button data-style="painting" class="style-btn p-3 rounded-xl border border-slate-200 text-sm hover:border-indigo-500 transition-all flex flex-col items-center justify-center gap-1 bg-white">
+                                <span class="text-xl">🖌️</span>
+                                <span class="font-medium">Peinture</span>
+                            </button>
+                            <button data-style="3d" class="style-btn p-3 rounded-xl border border-slate-200 text-sm hover:border-indigo-500 transition-all flex flex-col items-center justify-center gap-1 bg-white">
+                                <span class="text-xl">🎮</span>
+                                <span class="font-medium">Rendu 3D</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Zone d'explication pédagogique du style -->
+                        <div id="styleDescriptionBox" class="mt-3 p-3 bg-slate-800 rounded-lg border border-slate-700 text-slate-300 text-sm flex gap-3 items-start">
+                            <span class="text-amber-400 mt-0.5">💡</span>
+                            <div>
+                                <strong id="styleName" class="text-white block mb-1">Style</strong>
+                                <span id="styleEffect">Description de l'effet pédagogique.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paramètres avancés avec logique "Disabled" -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                        <div id="lighting-param" class="transition-all duration-300">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2 flex justify-between">
+                                Éclairage
+                                <span id="lighting-warning" class="text-[9px] text-amber-600 hidden">Verrouillé</span>
+                            </label>
+                            <select id="lightingSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="Natural daylight">Lumière du jour (Neutre)</option>
+                                <option value="Cinematic lighting">Cinématique (Dramatique)</option>
+                                <option value="Golden hour">Heure Dorée (Chaleureux)</option>
+                                <option value="Neon glow">Néon / Cyberpunk</option>
+                                <option value="Soft studio lighting">Studio (Doux/Épuré)</option>
+                            </select>
+                            <!-- Bloc descriptif pour l'éclairage -->
+                            <div id="lightingDescriptionBox" class="mt-2 p-2 bg-slate-100 rounded-md border border-slate-200 text-slate-700 text-xs">
+                                <strong id="lightingName" class="block mb-0.5">Lumière du jour (Neutre)</strong>
+                                <span id="lightingEffect">Idéale pour une représentation claire et objective, favorisant la description détaillée sans dramatisation excessive.</span>
+                            </div>
+                        </div>
+                        <div id="shot-param">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Cadrage / Caméra</label>
+                            <select id="shotSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-sm cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="Wide angle shot">Grand Angle (Contexte/Décor)</option>
+                                <option value="Close-up shot">Gros Plan (Émotion/Détail)</option>
+                                <option value="Eye level shot">Niveau du regard (Immersion)</option>
+                                <option value="Aerial drone view">Vue Aérienne (Géographie)</option>
+                            </select>
+                            <!-- Bloc descriptif pour le cadrage -->
+                            <div id="shotDescriptionBox" class="mt-2 p-2 bg-slate-100 rounded-md border border-slate-200 text-slate-700 text-xs">
+                                <strong id="shotName" class="block mb-0.5">Grand Angle (Contexte/Décor)</strong>
+                                <span id="shotEffect">Permet d'établir le contexte, le décor et les relations spatiales. Idéal pour des sujets nécessitant une vue d'ensemble.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: GENERATEUR & PREVIEW -->
+        <div class="lg:col-span-7 space-y-6">
+            <div class="bg-slate-900 rounded-3xl p-6 md:p-8 text-white shadow-2xl sticky top-24 border border-slate-700">
+                <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                    <h2 class="text-2xl font-bold flex items-center gap-3">
+                        <span class="bg-indigo-600 p-2 rounded-lg shadow-lg">🚀</span> 
+                        Prompt Final
+                    </h2>
+                    <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Prêt
+                    </span>
+                </div>
+
+                <!-- Analyse du prompt pour l'enseignant -->
+                <div class="mb-8 space-y-4">
+                    <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 relative group shadow-inner mb-4">
+                        <div class="absolute -top-3 left-4 bg-indigo-600 text-[10px] font-bold px-3 py-1 rounded-md shadow-sm border border-indigo-500">
+                            INPUT MACHINE (ANGLAIS)
+                        </div>
+                        <p id="promptOutput" class="prompt-preview-box text-lg md:text-xl font-mono text-indigo-300 leading-relaxed break-words"></p>
+                    </div>
+
+                    <!-- Nouveau bloc pour le prompt en français -->
+                    <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-700/50 relative mb-4">
+                        <div class="absolute -top-3 left-4 bg-indigo-500 text-[10px] font-bold px-3 py-1 rounded-md shadow-sm border border-indigo-400">
+                            PROMPT HUMAIN (FRANÇAIS)
+                        </div>
+                        <p id="promptOutputFrench" class="prompt-preview-box text-lg md:text-xl text-slate-200 leading-relaxed break-words pt-3"></p>
+                    </div>
+                        
+                    <button id="copyBtn" class="mt-6 w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl hover:bg-indigo-500 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-indigo-500/25 active:scale-[0.98]">
+                        <span class="text-lg">📋</span> Copier pour générer l'image
+                    </button>
+                    
+
+                    <div class="bg-slate-800/60 p-5 rounded-2xl border border-slate-700/50 relative">
+                        <div class="absolute top-0 right-0 p-3 opacity-20 text-4xl">🗣️</div>
+                        <h4 class="text-xs font-bold text-slate-400 uppercase mb-2 tracking-wider flex items-center gap-2">
+                            Piste d'exploitation (Oral)
+                        </h4>
+                        <p id="pisteOutput" class="text-slate-200 text-lg italic relative z-10 leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <!-- Explication technique (Le côté "Apprentissage") -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700">
+                        <p class="text-[10px] font-bold text-indigo-400 mb-1 flex items-center gap-1"><span>1.</span> STRUCTURE</p>
+                        <p class="text-xs text-slate-300">Ordre optimal : Cadrage → Sujet → Style visuel → Éclairage.</p>
+                    </div>
+                    <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700">
+                        <p class="text-[10px] font-bold text-indigo-400 mb-1 flex items-center gap-1"><span>2.</span> LANGUE</p>
+                        <p class="text-xs text-slate-300">L'anglais garantit une meilleure fidélité de l'Intelligence Artificielle.</p>
+                    </div>
+                    <div class="p-3 bg-slate-800/80 rounded-xl border border-slate-700">
+                        <p class="text-[10px] font-bold text-indigo-400 mb-1 flex items-center gap-1"><span>3.</span> PRÉCISION</p>
+                        <p class="text-xs text-slate-300">Restez descriptif. L'IA génère ce qu'elle "voit", pas des concepts abstraits.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-6 py-4 rounded-2xl shadow-2xl opacity-0 transform translate-y-4 transition-all duration-300 z-50 font-bold flex items-center gap-3">
+        <span class="text-2xl bg-emerald-500 rounded-full w-8 h-8 flex items-center justify-center">✓</span>
+        <div>
+            <p class="m-0 leading-tight">Prompt copié !</p>
+            <p class="text-xs font-normal text-emerald-100 m-0 mt-0.5">Collez-le dans votre générateur d'images.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. BASE DE DONNÉES COMPLÈTE (60 Prompts) ---
+        const allPrompts = [
+            // CYCLE 2
+            { cycle: "Cycle 2", grade: "Grade 1 (CP)", theme: "Nommer, Décrire et Identifier", title: "L'Absurde du Quotidien", base: "A primary school classroom floating in deep space. Wooden desks and chairs floating in zero gravity", base_fr: "Une salle de classe d'école primaire flottant dans l'espace. Bureaux et chaises en bois flottant en apesanteur", piste: "Qu'est-ce qui est étrange ? Nomme les objets qui volent." },
+            { cycle: "Cycle 2", grade: "Grade 1 (CP)", theme: "Nommer, Décrire et Identifier", title: "L'Émotion", base: "A small cute red fox wearing a bright yellow raincoat standing under the rain looking sad", base_fr: "Un petit renard roux mignon portant un imperméable jaune vif debout sous la pluie l'air triste", piste: "Que ressent ce renard ? Pourquoi pleure-t-il selon toi ?" },
+            { cycle: "Cycle 2", grade: "Grade 1 (CP)", theme: "Nommer, Décrire et Identifier", title: "Les Échelles", base: "A tiny boy the size of an ant trying to climb a giant shiny red apple in the grass", base_fr: "Un tout petit garçon de la taille d'une fourmi essayant de grimper sur une pomme rouge géante et brillante dans l'herbe", piste: "Compare la taille du garçon et de la pomme. Que va-t-il se passer ?" },
+            { cycle: "Cycle 2", grade: "Grade 1 (CP)", theme: "Nommer, Décrire et Identifier", title: "Le Merveilleux", base: "A magical forest where trees have pink cotton candy leaves and a glowing path", base_fr: "Une forêt magique où les arbres ont des feuilles de barbe à papa roses et un chemin lumineux", piste: "Aimerais-tu aller dans cette forêt ? Décris les couleurs." },
+            { cycle: "Cycle 2", grade: "Grade 1 (CP)", theme: "Nommer, Décrire et Identifier", title: "Le Début d'une Histoire", base: "A young boy opening an old wooden chest in a dusty attic, glowing light coming from inside", base_fr: "Un jeune garçon ouvrant un vieux coffre en bois dans un grenier poussiéreux, une lumière brillante s'échappant de l'intérieur", piste: "Qu'y a-t-il dans ce coffre ? Imagine la suite de l'histoire." },
+            { cycle: "Cycle 2", grade: "Grade 2 (CE1)", theme: "Chronologie et Cause/Conséquence", title: "La Conséquence", base: "A broken porcelain vase in a thousand pieces on a living room floor, a black cat looking away", base_fr: "Un vase en porcelaine brisé en mille morceaux sur le sol d'un salon, un chat noir regardant ailleurs", piste: "Qui est le coupable ? Quelles sont les preuves ?" },
+            { cycle: "Cycle 2", grade: "Grade 2 (CE1)", theme: "Chronologie et Cause/Conséquence", title: "L'Invention", base: "A flying bicycle with leather bat wings and a small steam engine", base_fr: "Une bicyclette volante avec des ailes de chauve-souris en cuir et un petit moteur à vapeur", piste: "Comment cette machine fonctionne-t-elle ? À quoi sert-elle ?" },
+            { cycle: "Cycle 2", grade: "Grade 2 (CE1)", theme: "Chronologie et Cause/Conséquence", title: "L'Implicite", base: "Three brown bears wearing human clothes looking surprised at a tiny empty bed in a cabin", base_fr: "Trois ours bruns vêtus de vêtements humains regardant surpris un petit lit vide dans une cabane", piste: "À quel conte célèbre cela te fait-il penser ?" },
+            { cycle: "Cycle 2", grade: "Grade 2 (CE1)", theme: "Chronologie et Cause/Conséquence", title: "Le Point de Vue", base: "Dog's perspective looking up at a human hand holding a dog treat just out of reach", base_fr: "Perspective d'un chien regardant une main humaine tenant une friandise pour chien juste hors de portée", piste: "Si tu étais le chien, que dirais-tu à ce moment précis ?" },
+            { cycle: "Cycle 2", grade: "Grade 2 (CE1)", theme: "Chronologie et Cause/Conséquence", title: "Le Dialogue", base: "Two astronauts in spacesuits on Mars standing face to face looking at a small green plant", base_fr: "Deux astronautes en combinaison spatiale sur Mars se tenant face à face regardant une petite plante verte", piste: "Imagine le dialogue entre les deux astronautes qui découvrent cela." },
+            { cycle: "Cycle 2", grade: "Grade 3 (CE2)", theme: "Comparaison et Débats Simples", title: "L'Anachronisme", base: "A knight in shining medieval armor sitting in a modern subway train holding a smartphone", base_fr: "Un chevalier en armure médiévale brillante assis dans un métro moderne tenant un smartphone", piste: "Trouve l'erreur historique. Comment est-il arrivé là ?" },
+            { cycle: "Cycle 2", grade: "Grade 3 (CE2)", theme: "Comparaison et Débats Simples", title: "L'Écologie", base: "Split screen: left side a clear river with fish, right side the same river filled with plastic waste", base_fr: "Écran partagé : côté gauche une rivière claire avec des poissons, côté droit la même rivière remplie de déchets plastiques", piste: "Compare les deux côtés. Comment empêcher cette pollution ?" },
+            { cycle: "Cycle 2", grade: "Grade 3 (CE2)", theme: "Comparaison et Débats Simples", title: "Le Mystère", base: "A mysterious man walking under a streetlamp at night, but casting two shadows in different directions", base_fr: "Un homme mystérieux marchant sous un lampadaire la nuit, mais projetant deux ombres dans des directions différentes", piste: "Formule une hypothèse pour expliquer ce phénomène étrange." },
+            { cycle: "Cycle 2", grade: "Grade 3 (CE2)", theme: "Comparaison et Débats Simples", title: "La Description Séquentielle", base: "A complex Rube Goldberg machine with marbles, dominos and springs", base_fr: "Une machine de Rube Goldberg complexe avec des billes, des dominos et des ressorts", piste: "Explique le fonctionnement de cette machine étape par étape." },
+            { cycle: "Cycle 2", grade: "Grade 3 (CE2)", theme: "Comparaison et Débats Simples", title: "Le Dilemme", base: "A child standing before two doors: one bright with flowers, one heavy iron door with locks", base_fr: "Un enfant debout devant deux portes : l'une lumineuse avec des fleurs, l'autre une lourde porte en fer avec des serrures", piste: "Quelle porte choisis-tu ? Donne deux arguments pour expliquer ton choix." },
+
+            // CYCLE 3
+            { cycle: "Cycle 3", grade: "Grade 4 (CM1)", theme: "Histoire, Géographie et Récit", title: "Immersion Historique", base: "Bustling market in Ancient Rome, merchants selling amphorae, citizens in togas", base_fr: "Marché animé dans la Rome antique, marchands vendant des amphores, citoyens en toges", piste: "Décris la vie quotidienne des Romains à partir des détails de l'image." },
+            { cycle: "Cycle 3", grade: "Grade 4 (CM1)", theme: "Histoire, Géographie et Récit", title: "Extrêmes Géographiques", base: "A village of houses on stilts in the flooded Amazon jungle, people in small boats", base_fr: "Un village de maisons sur pilotis dans la jungle amazonienne inondée, des gens dans de petits bateaux", piste: "Comment les humains se sont-ils adaptés à ce milieu naturel difficile ?" },
+            { cycle: "Cycle 3", grade: "Grade 4 (CM1)", theme: "Histoire, Géographie et Récit", title: "Incursion Mythologique", base: "Pegasus the white winged horse landing on a modern glass skyscraper in New York", base_fr: "Pégase le cheval blanc ailé atterrissant sur un gratte-ciel moderne en verre à New York", piste: "Que se passerait-il si les créatures mythologiques vivaient parmi nous ?" },
+            { cycle: "Cycle 3", grade: "Grade 4 (CM1)", theme: "Histoire, Géographie et Récit", title: "La Métamorphose", base: "An ancient tree whose branches are gradually turning into birds flying away", base_fr: "Un arbre ancien dont les branches se transforment progressivement en oiseaux s'envolant", piste: "Invente un mythe court pour expliquer cette transformation magique." },
+            { cycle: "Cycle 3", grade: "Grade 4 (CM1)", theme: "Histoire, Géographie et Récit", title: "Le Contraste Social", base: "A royal banquet seen through a cold window pane by poor hungry children in the snow", base_fr: "Un banquet royal vu à travers une vitre froide par des enfants pauvres et affamés dans la neige", piste: "Quel sentiment le créateur de cette image cherche-t-il à provoquer ?" },
+            { cycle: "Cycle 3", grade: "Grade 5 (CM2)", theme: "Citoyenneté et Grands Enjeux", title: "Allégorie de la République", base: "A modern Marianne planting a Liberty Tree with children from diverse backgrounds", base_fr: "Une Marianne moderne plantant un Arbre de la Liberté avec des enfants d'horizons divers", piste: "Identifie les symboles de la République française présents ici." },
+            { cycle: "Cycle 3", grade: "Grade 5 (CM2)", theme: "Citoyenneté et Grands Enjeux", title: "Débat Éthique", base: "A futuristic zoo where giant robot animals observe human beings inside glass cages", base_fr: "Un zoo futuriste où des animaux robots géants observent des êtres humains dans des cages en verre", piste: "Que dénonce cette image ? Organisons un débat sur la captivité." },
+            { cycle: "Cycle 3", grade: "Grade 5 (CM2)", theme: "Citoyenneté et Grands Enjeux", title: "Aventure Épique", base: "A fragile wooden sailboat fighting a colossal wave during a dark stormy night", base_fr: "Un voilier en bois fragile luttant contre une vague colossale pendant une nuit sombre et orageuse", piste: "Utilise un vocabulaire riche et précis pour exprimer la peur et le danger." },
+            { cycle: "Cycle 3", grade: "Grade 5 (CM2)", theme: "Citoyenneté et Grands Enjeux", title: "La Solidarité", base: "A human chain of people crossing a flooded river to save a stranded dog", base_fr: "Une chaîne humaine de personnes traversant une rivière inondée pour sauver un chien bloqué", piste: "Définis le mot 'héroïsme' en t'appuyant sur l'action de ces personnes." },
+            { cycle: "Cycle 3", grade: "Grade 5 (CM2)", theme: "Citoyenneté et Grands Enjeux", title: "Illusion d'Optique", base: "An infinite Penrose staircase with people walking in impossible loops", base_fr: "Un escalier de Penrose infini avec des gens marchant en boucles impossibles", piste: "Explique ce paradoxe visuel. Pourquoi cette construction est-elle impossible en réalité ?" },
+            { cycle: "Cycle 3", grade: "Grade 6 (6ème)", theme: "Le Monstre, le Héros et la Création", title: "Figure du Monstre", base: "The Minotaur in his stone labyrinth, leaning against a wall looking tired and sad", base_fr: "Le Minotaure dans son labyrinthe de pierre, adossé à un mur l'air fatigué et triste", piste: "Un monstre est-il toujours méchant ? Cette image suscite-t-elle la pitié ou la peur ?" },
+            { cycle: "Cycle 3", grade: "Grade 6 (6ème)", theme: "Le Monstre, le Héros et la Création", title: "Mythe de Création", base: "A cosmic giant sculpting the planet Earth out of stardust and glowing magma", base_fr: "Un géant cosmique sculptant la planète Terre à partir de poussière d'étoiles et de magma incandescent", piste: "Raconte la création du monde telle qu'elle est illustrée ici." },
+            { cycle: "Cycle 3", grade: "Grade 6 (6ème)", theme: "Le Monstre, le Héros et la Création", title: "Figure du Rusé", base: "An anthropomorphic fox hiding a stolen chicken behind his back, smiling at a naive wolf", base_fr: "Un renard anthropomorphe cachant un poulet volé derrière son dos, souriant à un loup naïf", piste: "Comment la ruse et la malice sont-elles représentées physiquement sur ce renard ?" },
+            { cycle: "Cycle 3", grade: "Grade 6 (6ème)", theme: "Le Monstre, le Héros et la Création", title: "Héros à l'Épreuve", base: "A young explorer facing a massive bottomless pit in a bioluminescent glowing cave", base_fr: "Un jeune explorateur face à un gouffre sans fond massif dans une grotte luminescente", piste: "Quelles qualités morales et physiques faut-il au héros pour surmonter cette épreuve ?" },
+            { cycle: "Cycle 3", grade: "Grade 6 (6ème)", theme: "Le Monstre, le Héros et la Création", title: "Naissance de l'Écriture", base: "An ancient Egyptian scribe focused on carving hieroglyphs into a clay tablet", base_fr: "Un scribe égyptien antique concentré sur la gravure de hiéroglyphes sur une tablette d'argile", piste: "Pourquoi l'invention de l'écriture a-t-elle été une révolution pour l'humanité ?" },
+
+            // CYCLE 4
+            { cycle: "Cycle 4", grade: "Grade 7 (5ème)", theme: "Voyage et Nature", title: "Rencontre des Cultures", base: "Marco Polo arriving at the luxurious court of Kublai Khan, exchanging silk and spices", base_fr: "Marco Polo arrivant à la luxueuse cour de Kublai Khan, échangeant soies et épices", piste: "Comment les grands voyages de découverte ont-ils changé la vision du monde ?" },
+            { cycle: "Cycle 4", grade: "Grade 7 (5ème)", theme: "Voyage et Nature", title: "Le Chevalier Féminin", base: "A knight removing her helmet after battle, revealing the face of a fierce young woman", base_fr: "Une chevalière retirant son casque après la bataille, révélant le visage d'une jeune femme féroce", piste: "En quoi cette image bouscule-t-elle les stéréotypes habituels du Moyen Âge ?" },
+            { cycle: "Cycle 4", grade: "Grade 7 (5ème)", theme: "Voyage et Nature", title: "Force de la Nature", base: "A dense jungle swallowing the ruins of a modern city, vines covering rusting cars", base_fr: "Une jungle dense engloutissant les ruines d'une ville moderne, des lianes recouvrant des voitures rouillées", piste: "Commentez l'expression : 'La nature finit toujours par reprendre ses droits'." },
+            { cycle: "Cycle 4", grade: "Grade 7 (5ème)", theme: "Voyage et Nature", title: "La Comédie", base: "A mischievous valet making donkey ears behind his arrogant master's back on a theater stage", base_fr: "Un valet malicieux faisant des oreilles d'âne derrière le dos de son maître arrogant sur une scène de théâtre", piste: "Identifiez et expliquez les ressorts comiques de cette situation." },
+            { cycle: "Cycle 4", grade: "Grade 7 (5ème)", theme: "Voyage et Nature", title: "Le Survivant", base: "A man alone on a desert island trying desperately to start a fire with sticks", base_fr: "Un homme seul sur une île déserte essayant désespérément d'allumer un feu avec des bâtons", piste: "Qu'est-ce qui distingue l'homme de l'animal lorsqu'il s'agit de survivre ?" },
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "Révolution Industrielle", base: "A dark 19th-century factory spewing thick black smoke, tired child workers entering", base_fr: "Une sombre usine du XIXe siècle crachant une épaisse fumée noire, des enfants ouvriers fatigués entrant", piste: "Décrivez l'impact social et écologique de l'industrialisation au XIXe siècle." },
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "L'Étrange Reflet", base: "A young girl looking in a Victorian mirror, but her reflection is looking away smiling", base_fr: "Une jeune fille regardant dans un miroir victorien, mais son reflet regarde ailleurs en souriant", piste: "Qu'est-ce qui crée le sentiment d'inquiétude et l'hésitation fantastique ici ?" },
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "Folie Urbaine", base: "A futuristic cyberpunk megalopolis seen from below, oppressive skyscrapers and neon ads", base_fr: "Une mégalopole cyberpunk futuriste vue d'en bas, gratte-ciel oppressants et publicités au néon", piste: "La grande ville moderne : est-elle un lieu de liberté ou d'aliénation ?" },
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "Satire Sociale", base: "Caricature of an obese banker eating gold coins while thin people pick up crumbs", base_fr: "Caricature d'un banquier obèse mangeant des pièces d'or pendant que des gens maigres ramassent des miettes", piste: "Comment le dessinateur utilise-t-il l'exagération pour dénoncer les inégalités ?" },
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "Suspense Épistolaire", base: "A trembling hand holding an old letter with a broken red wax seal and a drop of blood", base_fr: "Une main tremblante tenant une vieille lettre avec un sceau de cire rouge brisé et une goutte de sang", piste: "Faites preuve d'imagination : inventez le contenu de cette lettre mystérieuse." },
+            { cycle: "Cycle 4", grade: "Grade 9 (3ème)", theme: "Dénoncer, Agir, Se Raconter", title: "Dystopie Totalitaire", base: "A line of identical people in grey uniforms walking heads down, one person wears a red jacket looking up", base_fr: "Une ligne de personnes identiques en uniformes gris marchant tête baissée, une personne porte une veste rouge et lève les yeux", piste: "Pourquoi l'individualité est-elle souvent réprimée dans les récits dystopiques ?" },
+            { cycle: "Cycle 4", grade: "Grade 9 (3ème)", theme: "Dénoncer, Agir, Se Raconter", title: "Espace Intime", base: "A teenager's bedroom split in two: one half tidy with childhood toys, the other messy with rock posters", base_fr: "Une chambre d'adolescent divisée en deux : une moitié rangée avec des jouets d'enfance, l'autre désordonnée avec des affiches de rock", piste: "Comment les objets qui nous entourent racontent-ils la construction de notre identité ?" },
+            { cycle: "Cycle 4", grade: "Grade 9 (3ème)", theme: "Dénoncer, Agir, Se Raconter", title: "Art Engagé", base: "A brick wall destroyed by war, featuring a beautiful trompe-l'oeil mural of a peaceful blue sky", base_fr: "Un mur de briques détruit par la guerre, avec une magnifique fresque en trompe-l'œil d'un ciel bleu paisible", piste: "L'art urbain peut-il être une arme politique ? Quel est le message de cette fresque ?" },
+            { cycle: "Cycle 4", grade: "Grade 9 (3ème)", theme: "Dénoncer, Agir, Se Raconter", title: "Devoir de Mémoire", base: "WW1 muddy trenches, an exhausted soldier reading a dirty letter from home", base_fr: "Tranchées boueuses de la Première Guerre mondiale, un soldat épuisé lisant une lettre sale de chez lui", piste: "Pourquoi est-il crucial de conserver et transmettre les témoignages des conflits passés ?" },
+            { cycle: "Cycle 4", grade: "Grade 9 (3ème)", theme: "Dénoncer, Agir, Se Raconter", title: "Agir sur le Monde", base: "A handful of dry cracked earth in a palm, with a single bright green sprout growing", base_fr: "Une poignée de terre sèche et fissurée dans une paume, avec une seule pousse verte et brillante qui pousse", piste: "Utilisez cette image pour construire un argumentaire convaincant en faveur de l'écologie." },
+
+            // LYCÉE
+            { cycle: "Lycée", grade: "Grade 10 (2nde)", theme: "Théâtre et Science", title: "Être et Paraître", base: "An actor on a dark stage holding a tragic sad mask, while his real face behind is smiling", base_fr: "Un acteur sur une scène sombre tenant un masque tragique et triste, tandis que son vrai visage derrière sourit", piste: "Analysez la tension entre l'être et le paraître, au théâtre comme en société." },
+            { cycle: "Lycée", grade: "Grade 10 (2nde)", theme: "Théâtre et Science", title: "Controverse Scientifique", base: "A Renaissance scientist performing a secret anatomical dissection by candlelight", base_fr: "Un scientifique de la Renaissance effectuant une dissection anatomique secrète à la lueur des bougies", piste: "Pourquoi la démarche scientifique s'est-elle souvent heurtée aux dogmes établis ?" },
+            { cycle: "Lycée", grade: "Grade 10 (2nde)", theme: "Théâtre et Science", title: "Idéalisation vs Réalisme", base: "A split portrait of a king: left side idealized and flawless, right side hyper-realistic showing wrinkles", base_fr: "Un portrait divisé d'un roi : côté gauche idéalisé et sans défaut, côté droit hyper-réaliste montrant des rides", piste: "L'art pictural a-t-il pour vocation d'embellir la réalité ou d'en montrer la stricte vérité ?" },
+            { cycle: "Lycée", grade: "Grade 10 (2nde)", theme: "Théâtre et Science", title: "L'Éloquence Politique", base: "A passionate female orator with a raised fist addressing a blurred massive crowd", base_fr: "Une oratrice passionnée le poing levé s'adressant à une foule massive floue", piste: "Identifiez les outils rhétoriques (verbaux et corporels) de l'éloquence représentés ici." },
+            { cycle: "Cycle 4", grade: "Grade 8 (4ème)", theme: "Ville et Fantastique", title: "Ironie Dramatique", base: "Wealthy passengers dancing in a luxury ship ballroom, while through the window a massive iceberg looms", base_fr: "Des passagers riches dansant dans une salle de bal d'un navire de luxe, tandis qu'à travers la fenêtre un iceberg massif se profile", piste: "Définissez le concept d'ironie dramatique en vous appuyant sur la composition de cette scène." },
+            { cycle: "Lycée", grade: "Grade 11 (1ère)", theme: "Littérature et Pouvoir", title: "Le Romantisme", base: "A traveler from behind wearing a dark coat, standing on a rocky peak looking over a sea of fog", base_fr: "Un voyageur de dos portant un manteau sombre, debout sur un sommet rocheux regardant une mer de brouillard", piste: "Comment la représentation du paysage devient-elle le miroir des tourments de l'âme romantique ?" },
+            { cycle: "Lycée", grade: "Grade 11 (1ère)", theme: "Littérature et Pouvoir", title: "Allégorie du Pouvoir", base: "A fierce wolf wearing a golden crown, sitting on a throne made of sleeping docile sheep", base_fr: "Un loup féroce portant une couronne dorée, assis sur un trône fait de moutons dociles et endormis", piste: "Proposez une analyse politique de cette allégorie sur la nature des régimes autoritaires." },
+            { cycle: "Lycée", grade: "Grade 11 (1ère)", theme: "Littérature et Pouvoir", title: "Balance de la Justice", base: "The scales of justice with one side heavily weighed down by stacks of cash, tilting the sword", base_fr: "Les plateaux de la justice avec un côté lourdement lesté par des piles d'argent, inclinant l'épée", piste: "Commentez la dimension satirique de cette image : la justice est-elle la même pour tous ?" },
+            { cycle: "Lycée", grade: "Grade 11 (1ère)", theme: "Littérature et Pouvoir", title: "Esthétique de la Laideur", base: "A beautiful pure white lily flower growing directly out of a toxic bubbling waste dump", base_fr: "Une belle fleur de lys blanc pur poussant directement d'une décharge de déchets toxiques bouillonnants", piste: "Faites le lien avec 'Les Fleurs du Mal' : comment la poésie peut-elle naître de l'ignoble ?" },
+            { cycle: "Lycée", grade: "Grade 11 (1ère)", theme: "Littérature et Pouvoir", title: "Rhétorique de l'Image", base: "A 1950s vintage advertisement featuring a smiling doctor claiming a brand of cigarettes is healthy", base_fr: "Une publicité vintage des années 1950 mettant en scène un médecin souriant affirmant qu'une marque de cigarettes est saine", piste: "Déconstruisez la stratégie manipulative de cette affiche, notamment l'argument d'autorité." },
+            { cycle: "Lycée", grade: "Grade 12 (Term)", theme: "Philosophie et Géopolitique", title: "Temps et Conscience", base: "Melting liquid clocks dripping over dead branches in a barren desert", base_fr: "Des horloges liquides en fusion dégoulinant sur des branches mortes dans un désert aride", piste: "À la lumière de vos connaissances philosophiques, le temps est-il une réalité objective ou une construction de la conscience ?" },
+            { cycle: "Lycée", grade: "Grade 12 (Term)", theme: "Philosophie et Géopolitique", title: "Art, Technique et IA", base: "A chrome humanoid robot holding a painter's palette, passionately painting a landscape on canvas", base_fr: "Un robot humanoïde chromé tenant une palette de peintre, peignant passionnément un paysage sur toile", piste: "L'art est-il le propre de l'homme ? Une intelligence artificielle peut-elle être qualifiée d'artiste ?" },
+            { cycle: "Lycée", grade: "Grade 12 (Term)", theme: "Philosophie et Géopolitique", title: "L'Allégorie de la Caverne", base: "Men chained in a dark cave watching glowing shadows on a stone wall, unaware of the fire behind", base_fr: "Des hommes enchaînés dans une grotte sombre regardant des ombres lumineuses sur un mur de pierre, ignorant le feu derrière", piste: "Pourquoi est-il douloureux et difficile de sortir de l'ignorance pour atteindre la vérité selon Platon ?" },
+            { cycle: "Lycée", grade: "Grade 12 (Term)", theme: "Philosophie et Géopolitique", title: "Liberté et Déterminisme", base: "A wooden marionette puppet cutting its own strings with a large pair of scissors", base_fr: "Une marionnette en bois coupant ses propres fils avec une grande paire de ciseaux", piste: "Sommes-nous les auteurs réels de nos choix ou sommes-nous déterminés par des forces extérieures ?" },
+            { cycle: "Lycée", grade: "Grade 12 (Term)", theme: "Philosophie et Géopolitique", title: "Travail et Aliénation", base: "A human worker in a business suit running frantically like a hamster inside a giant clock gear", base_fr: "Un travailleur humain en costume d'affaires courant frénétiquement comme un hamster à l'intérieur d'un gigantesque engrenage d'horloge", piste: "Le travail est-il un moyen de libération de l'homme ou un instrument moderne d'aliénation ?" }
+        ];
+
+        // --- 2. CONFIGURATION DES STYLES ---
+        const stylesConfig = {
+            photo: {
+                name: "Photoréalisme",
+                tag: "hyper-realistic photography, 8k resolution, highly detailed, photorealistic",
+                effect: "Ancre la situation dans le réel. Idéal pour travailler le vocabulaire du quotidien, la description objective et l'empathie directe.",
+                recommendedLighting: "Natural daylight",
+                recommendedShot: "Eye level shot"
+            },
+            illustration: {
+                name: "Illustration Vectorielle",
+                tag: "modern digital illustration, flat vector style, vibrant colors, clean lines",
+                effect: "Simplifie le message visuel. Parfait pour capter l'attention, illustrer des concepts abstraits ou des récits pour la jeunesse.",
+                recommendedLighting: "Natural daylight", // L'illustration flat n'a pas besoin de lumière complexe
+                recommendedShot: "Wide angle shot"
+            },
+            painting: {
+                name: "Peinture Classique",
+                tag: "classical oil painting style, fine brushwork, chiaroscuro, museum quality masterpiece",
+                effect: "Apporte une distance historique et esthétique. Excellent pour l'analyse d'images patrimoniales, les mythes ou le romantisme.",
+                recommendedLighting: "Cinematic lighting", // Pour l'ambiance des tableaux classiques
+                recommendedShot: "Wide angle shot"
+            },
+            "3d": {
+                name: "Rendu 3D (CGI)",
+                tag: "unreal engine 5 render, octane render, volumetric lighting, epic cinematic 3d",
+                effect: "Donne du volume et du drame. Adapté pour l'invention d'univers fantastiques, la science-fiction ou pour stimuler l'imaginaire immersif.",
+                recommendedLighting: "Cinematic lighting",
+                recommendedShot: "Eye level shot"
+            }
+        };
+
+        // Configurations pour l'éclairage
+        const lightingConfig = {
+            "Natural daylight": {
+                name: "Lumière du jour (Neutre)",
+                effect: "Idéale pour une représentation claire et objective, favorisant la description détaillée sans dramatisation excessive."
+            },
+            "Cinematic lighting": {
+                name: "Cinématique (Dramatique)",
+                effect: "Crée une ambiance forte, souvent utilisée pour accentuer le suspense, le mystère ou les émotions intenses."
+            },
+            "Golden hour": {
+                name: "Heure Dorée (Chaleureux)",
+                effect: "Apporte une atmosphère douce, chaleureuse et souvent nostalgique. Idéal pour des scènes intimes ou poétiques."
+            },
+            "Neon glow": {
+                name: "Néon / Cyberpunk",
+                effect: "Donne un aspect futuriste et urbain, avec des contrastes vifs et une sensation d'énergie nocturne. Stimule l'imaginaire SF."
+            },
+            "Soft studio lighting": {
+                name: "Studio (Doux/Épuré)",
+                effect: "Met en valeur le sujet principal avec une lumière uniforme et sans ombres dures, pour une clarté maximale ou un style minimaliste."
+            }
+        };
+
+        // Configurations pour le cadrage
+        const shotConfig = {
+            "Wide angle shot": {
+                name: "Grand Angle (Contexte/Décor)",
+                effect: "Permet d'établir le contexte, le décor et les relations spatiales. Idéal pour des sujets nécessitant une vue d'ensemble."
+            },
+            "Close-up shot": {
+                name: "Gros Plan (Émotion/Détail)",
+                effect: "Accentue les émotions, les expressions faciales ou les détails significatifs. Force l'attention sur un élément précis."
+            },
+            "Eye level shot": {
+                name: "Niveau du regard (Immersion)",
+                effect: "Place le spectateur au même niveau que le sujet, favorisant l'immersion et l'identification. Idéal pour des scènes interactives."
+            },
+            "Aerial drone view": {
+                name: "Vue Aérienne (Géographie)",
+                effect: "Offre une perspective globale, utile pour l'étude de paysages, de villes ou de mouvements de groupe. Met en scène l'espace."
+            }
+        };
+
+
+        // --- 3. GESTION DE L'ÉTAT ---
+        let state = {
+            cycle: "",
+            grade: "",
+            style: "photo"
+        };
+
+        // DOM Elements
+        const cycleSelect = document.getElementById('cycleSelect');
+        const gradeSelect = document.getElementById('gradeSelect');
+        const titleSelect = document.getElementById('titleSelect');
+        const customTitle = document.getElementById('customTitle');
+        const themeText = document.getElementById('themeText');
+        const lightingSelect = document.getElementById('lightingSelect');
+        const shotSelect = document.getElementById('shotSelect');
+        const styleButtons = document.querySelectorAll('.style-btn');
+        const promptOutput = document.getElementById('promptOutput');
+        const promptOutputFrench = document.getElementById('promptOutputFrench'); // Nouveau
+        const pisteOutput = document.getElementById('pisteOutput');
+
+        const styleName = document.getElementById('styleName');
+        const styleEffect = document.getElementById('styleEffect');
+        const lightingName = document.getElementById('lightingName');
+        const lightingEffect = document.getElementById('lightingEffect');
+        const shotName = document.getElementById('shotName');
+        const shotEffect = document.getElementById('shotEffect');
+
+        // Constante pour l'option de sujet libre
+        const CUSTOM_TITLE_OPTION_VALUE = "custom-subject-free";
+        const CUSTOM_TITLE_OPTION_TEXT = "✍️ Saisir un sujet libre...";
+
+
+        // --- 4. LOGIQUE EN CASCADE (INITIALISATION & UPDATES) ---
+
+        function initApp() {
+            // Extraire les cycles uniques
+            const cycles = [...new Set(allPrompts.map(p => p.cycle))];
+            populateSelect(cycleSelect, cycles);
+            
+            // Set default state
+            state.cycle = cycles[0];
+            
+            // Listeners
+            cycleSelect.addEventListener('change', (e) => {
+                state.cycle = e.target.value;
+                updateGrades();
+            });
+            
+            gradeSelect.addEventListener('change', (e) => {
+                state.grade = e.target.value;
+                updateTitles();
+            });
+
+            titleSelect.addEventListener('change', (e) => {
+                if (e.target.value === CUSTOM_TITLE_OPTION_VALUE) {
+                    customTitle.removeAttribute('disabled');
+                    customTitle.classList.remove('custom-title-disabled');
+                    customTitle.classList.add('custom-title-enabled');
+                    customTitle.focus();
+                } else {
+                    customTitle.setAttribute('disabled', 'true');
+                    customTitle.classList.remove('custom-title-enabled');
+                    customTitle.classList.add('custom-title-disabled');
+                    customTitle.value = ""; // Effacer le champ si on revient à un sujet prédéfini
+                }
+                generatePrompt();
+            });
+
+            customTitle.addEventListener('input', generatePrompt);
+            customTitle.addEventListener('change', generatePrompt); // Pour s'assurer de la maj à la perte de focus
+
+            lightingSelect.addEventListener('change', (e) => {
+                updateLightingDescription(e.target.value);
+                generatePrompt();
+            });
+            shotSelect.addEventListener('change', (e) => {
+                updateShotDescription(e.target.value);
+                generatePrompt();
+            });
+
+            styleButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const selectedStyle = e.currentTarget.dataset.style;
+                    setStyle(selectedStyle, true); // true pour appliquer les recommandations
+                });
+            });
+
+            document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
+
+            // Cascade initiale
+            updateGrades();
+            setStyle('photo', true); // Set default style visually and apply recommendations
+            updateLightingDescription(lightingSelect.value); // Initialiser la description éclairage
+            updateShotDescription(shotSelect.value); // Initialiser la description cadrage
+        }
+
+        function populateSelect(selectElement, optionsArray, valueKey = null, textKey = null) {
+            selectElement.innerHTML = '';
+            optionsArray.forEach(opt => {
+                const el = document.createElement('option');
+                if (typeof opt === 'string') {
+                    el.value = opt;
+                    el.textContent = opt;
+                } else {
+                    el.value = opt[valueKey];
+                    el.textContent = opt[textKey];
+                }
+                selectElement.appendChild(el);
+            });
+        }
+
+        function updateGrades() {
+            // Filtrer les niveaux correspondant au cycle sélectionné
+            const relevantPrompts = allPrompts.filter(p => p.cycle === state.cycle);
+            const grades = [...new Set(relevantPrompts.map(p => p.grade))];
+            
+            populateSelect(gradeSelect, grades);
+            state.grade = grades[0]; // Auto select first
+            updateTitles();
+            
+            // Animation visuelle pour montrer la mise à jour
+            gradeSelect.classList.add('bg-indigo-50', 'border-indigo-300');
+            setTimeout(() => gradeSelect.classList.remove('bg-indigo-50', 'border-indigo-300'), 500);
+        }
+
+        function updateTitles() {
+            // Filtrer les sujets correspondant au cycle ET au niveau
+            const relevantPrompts = allPrompts.filter(p => p.cycle === state.cycle && p.grade === state.grade);
+            
+            // Mettre à jour le thème affiché
+            if (relevantPrompts.length > 0) {
+                themeText.textContent = relevantPrompts[0].theme;
+            } else {
+                themeText.textContent = "Aucun thème disponible";
+            }
+
+            // Mettre à jour le dropdown des sujets
+            titleSelect.innerHTML = '<option value="">-- Sélectionner un sujet du guide officiel --</option>';
+            relevantPrompts.forEach((p, index) => {
+                const opt = document.createElement('option');
+                opt.value = index; // On utilise l'index local comme valeur
+                opt.textContent = p.title;
+                titleSelect.appendChild(opt);
+            });
+            
+            // Ajouter l'option "Sujet Libre" à la fin
+            const customOpt = document.createElement('option');
+            customOpt.value = CUSTOM_TITLE_OPTION_VALUE;
+            customOpt.textContent = CUSTOM_TITLE_OPTION_TEXT;
+            titleSelect.appendChild(customOpt);
+
+            // Reset custom field & auto-select first item or default to empty
+            customTitle.value = "";
+            customTitle.setAttribute('disabled', 'true');
+            customTitle.classList.remove('custom-title-enabled');
+            customTitle.classList.add('custom-title-disabled');
+
+            if (relevantPrompts.length > 0) {
+                titleSelect.value = "0"; // Select first item by default
+            } else {
+                titleSelect.value = ""; // No default selection if no prompts
+            }
+            
+            generatePrompt(relevantPrompts);
+        }
+
+        // --- 5. GESTION DES STYLES & GÉNÉRATION ---
+
+        function setStyle(styleKey, applyRecommendations = false) {
+            state.style = styleKey;
+            
+            // Update UI Buttons
+            styleButtons.forEach(btn => {
+                if (btn.dataset.style === styleKey) {
+                    btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600', 'shadow-md', 'scale-105');
+                    btn.classList.remove('bg-white', 'text-slate-900');
+                } else {
+                    btn.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600', 'shadow-md', 'scale-105');
+                    btn.classList.add('bg-white', 'text-slate-900');
+                }
+            });
+
+            // Update Educational Info
+            const styleConfig = stylesConfig[styleKey];
+            styleName.textContent = styleConfig.name;
+            styleEffect.textContent = styleConfig.effect;
+            
+            // Animation du texte d'explication
+            const descBox = document.getElementById('styleDescriptionBox');
+            descBox.style.opacity = '0';
+            setTimeout(() => descBox.style.opacity = '1', 150);
+
+            // Logique de Verrouillage des paramètres (ex: Peinture + Néon = Bizarre)
+            const lightingContainer = document.getElementById('lighting-param');
+            const lightingWarning = document.getElementById('lighting-warning');
+            
+            if (styleKey === 'painting') {
+                lightingSelect.value = "Cinematic lighting";
+                lightingContainer.classList.add('disabled-param');
+                lightingWarning.classList.remove('hidden');
+                lightingWarning.textContent = "Verrouillé (Incompatible avec Peinture)";
+                lightingSelect.setAttribute('disabled', 'true');
+            } else if (styleKey === 'illustration') {
+                 lightingSelect.value = "Natural daylight"; 
+                 lightingContainer.classList.add('disabled-param');
+                 lightingWarning.classList.remove('hidden');
+                 lightingWarning.textContent = "Verrouillé (Automatique en Vectoriel)";
+                 lightingSelect.setAttribute('disabled', 'true');
+            } else {
+                lightingContainer.classList.remove('disabled-param');
+                lightingWarning.classList.add('hidden');
+                lightingSelect.removeAttribute('disabled');
+            }
+
+            // Appliquer les recommandations d'éclairage et de cadrage si demandé
+            if (applyRecommendations) {
+                // Éclairage recommandé
+                if (!lightingSelect.disabled) { // Appliquer seulement si non verrouillé
+                    lightingSelect.value = styleConfig.recommendedLighting;
+                }
+                // Cadrage recommandé
+                shotSelect.value = styleConfig.recommendedShot;
+            }
+            
+            updateLightingDescription(lightingSelect.value); // Mettre à jour la description de l'éclairage après un changement de style
+            updateShotDescription(shotSelect.value); // Mettre à jour la description du cadrage
+            generatePrompt();
+        }
+
+        function updateLightingDescription(selectedLighting) {
+            const config = lightingConfig[selectedLighting];
+            if (config) {
+                lightingName.textContent = config.name;
+                lightingEffect.textContent = config.effect;
+            } else {
+                lightingName.textContent = "Éclairage";
+                lightingEffect.textContent = "Sélectionnez un type d'éclairage pour une description.";
+            }
+        }
+
+        function updateShotDescription(selectedShot) {
+            const config = shotConfig[selectedShot];
+            if (config) {
+                shotName.textContent = config.name;
+                shotEffect.textContent = config.effect;
+            } else {
+                shotName.textContent = "Cadrage / Caméra";
+                shotEffect.textContent = "Sélectionnez un type de cadrage pour une description.";
+            }
+        }
+
+        function generatePrompt(passedPrompts = null) {
+            const relevantPrompts = passedPrompts || allPrompts.filter(p => p.cycle === state.cycle && p.grade === state.grade);
+            
+            let baseSubjectEn = "";
+            let baseSubjectFr = ""; // Nouveau pour le prompt français
+            let currentPiste = "Exploitation libre. Posez une question ouverte sur l'image à vos élèves.";
+            let isPlaceholder = false;
+
+            if (titleSelect.value === CUSTOM_TITLE_OPTION_VALUE && customTitle.value.trim() !== "") {
+                baseSubjectEn = customTitle.value.trim();
+                baseSubjectFr = customTitle.value.trim(); // Pour l'instant, même sujet pour le français
+                currentPiste = "Sujet libre. Définissez l'objectif de prise de parole avant de générer l'image.";
+            } else if (titleSelect.value !== "") {
+                const selectedPromptData = relevantPrompts[parseInt(titleSelect.value)];
+                if (selectedPromptData) { 
+                    baseSubjectEn = selectedPromptData.base;
+                    baseSubjectFr = selectedPromptData.base_fr || selectedPromptData.base; // Utilise base_fr si défini, sinon base
+                    currentPiste = selectedPromptData.piste;
+                } else {
+                    baseSubjectEn = "[Select a valid subject]";
+                    baseSubjectFr = "[Sélectionnez un sujet valide]";
+                    currentPiste = "Erreur: Sujet non trouvé. Veuillez en sélectionner un nouveau.";
+                    isPlaceholder = true;
+                }
+            } else {
+                baseSubjectEn = "[Describe your subject here]";
+                baseSubjectFr = "[Décrivez votre sujet ici]";
+                currentPiste = "Sélectionnez un cycle, une classe et un sujet pour générer un guide.";
+                isPlaceholder = true;
+            }
+
+            const shotEn = shotSelect.value;
+            const lightingEn = lightingSelect.value;
+            const styleTagsEn = stylesConfig[state.style].tag;
+            const styleNameFr = stylesConfig[state.style].name;
+
+            // Construction du prompt en ANGLAIS
+            let finalPromptEn = `${shotEn} of ${baseSubjectEn}. ${styleTagsEn}`;
+            if (state.style !== 'illustration') {
+                finalPromptEn += `, ${lightingEn}.`;
+            } else {
+                finalPromptEn += `.`;
+            }
+
+            // Construction du prompt en FRANÇAIS (simplifié pour l'humain)
+            let shotNameFr = shotConfig[shotEn] ? shotConfig[shotEn].name.split(' (')[0] : shotEn; // Ex: "Grand Angle"
+            let lightingNameFr = lightingConfig[lightingEn] ? lightingConfig[lightingEn].name.split(' (')[0] : lightingEn; // Ex: "Lumière du jour"
+
+            let finalPromptFr = `${shotNameFr} de : "${baseSubjectFr}". Style : ${styleNameFr}.`;
+             if (state.style !== 'illustration') {
+                finalPromptFr += ` Éclairage : ${lightingNameFr}.`;
+            }
+            
+            promptOutput.textContent = finalPromptEn;
+            promptOutputFrench.textContent = finalPromptFr; // Mise à jour du prompt français
+            pisteOutput.textContent = `« ${currentPiste} »`;
+
+            // Ajout d'une classe pour styliser le placeholder
+            if (isPlaceholder || (titleSelect.value === CUSTOM_TITLE_OPTION_VALUE && customTitle.value.trim() === "")) {
+                promptOutput.classList.add('text-slate-400', 'italic');
+                promptOutputFrench.classList.add('text-slate-400', 'italic');
+            } else {
+                promptOutput.classList.remove('text-slate-400', 'italic');
+                promptOutputFrench.classList.remove('text-slate-400', 'italic');
+            }
+        }
+
+        // --- 6. UTILITAIRES ---
+        function copyToClipboard() {
+            const textToCopy = promptOutput.textContent; // Copie toujours le prompt ANGLAIS
+            
+            // Création d'un élément temporaire
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                console.error('Erreur lors de la copie', err);
+            }
+            
+            document.body.removeChild(tempTextArea);
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            // Animation du bouton
+            const btn = document.getElementById('copyBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<span class="text-lg">✓</span> Prompt Copié !`;
+            btn.classList.add('bg-emerald-600');
+            btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-4');
+                
+                btn.innerHTML = originalText;
+                btn.classList.remove('bg-emerald-600');
+                btn.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
+            }, 3000);
+        }
+
+        // Lancement au chargement
+        window.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>

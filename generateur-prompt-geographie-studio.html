@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue de Prompts Géographie - Liban | Nanobanan AI</title>
+    <style>
+        :root {
+            --primary-blue: #023e8a;
+            --secondary-blue: #0077b6;
+            --light-blue: #caf0f8;
+            --primary-green: #2a9d8f;
+            --earth-sand: #e9edc9;
+            --dark-text: #333333;
+            --light-bg: #f8f9fa;
+            --border-radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--light-blue);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--primary-green);
+        }
+
+        h2 {
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--earth-sand);
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-blue);
+        }
+
+        select, input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.2);
+        }
+
+        select:disabled, input:disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .radio-group label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            color: var(--dark-text);
+        }
+
+        #freeTopicContainer {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background-color: var(--earth-sand);
+            border-left: 4px solid var(--primary-green);
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #555;
+            min-height: 40px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-green);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            margin-top: 1.5rem;
+        }
+
+        .btn:hover {
+            background-color: #21867a;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        #resultPrompt {
+            height: 300px;
+            resize: vertical;
+            background-color: #f1f5f9;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Générateur de Prompts Géographie</h1>
+        <p>Curriculum Libanais | Optimisé pour l'IA Nanobanan</p>
+    </header>
+
+    <div class="container">
+        <!-- Section Formulaire -->
+        <div class="card">
+            <h2>1. Choix du Sujet (Curriculum)</h2>
+            
+            <div class="form-group">
+                <label for="cycleSelect">Cycle Scolaire</label>
+                <select id="cycleSelect">
+                    <option value="">Sélectionnez un cycle...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="classSelect">Classe</label>
+                <select id="classSelect" disabled>
+                    <option value="">Sélectionnez d'abord un cycle...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="topicSelect">Sujet de Géographie</label>
+                <select id="topicSelect" disabled>
+                    <option value="">Sélectionnez d'abord une classe...</option>
+                </select>
+                <div id="freeTopicContainer">
+                    <input type="text" id="freeTopicInput" placeholder="Entrez votre thème libre ici...">
+                </div>
+            </div>
+
+            <h2>2. Paramètres de l'image (Nanobanan)</h2>
+
+            <div class="form-group">
+                <label>Type de document</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="imageType" value="annotated" checked> Image déjà annotée</label>
+                    <label><input type="radio" name="imageType" value="blank"> Image vierge à annoter</label>
+                </div>
+                <div class="info-box" id="infoImageType">Génère une carte avec des textes intégrés. (Les textes seront forcés en Arabe Fous7a).</div>
+            </div>
+
+            <div class="form-group">
+                <label for="styleSelect">Style Cartographique / Visuel</label>
+                <select id="styleSelect">
+                    <option value="Carte physique classique">Carte physique classique</option>
+                    <option value="Carte politique épurée">Carte politique épurée</option>
+                    <option value="Vue satellite réaliste">Vue satellite réaliste</option>
+                    <option value="Topographie 3D isométrique">Topographie 3D isométrique</option>
+                    <option value="Illustration enfantine vectorielle">Illustration enfantine vectorielle</option>
+                </select>
+                <div class="info-box" id="infoStyle">Représentation traditionnelle montrant le relief et les cours d'eau.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="detailSelect">Niveau de détail</label>
+                <select id="detailSelect">
+                    <option value="Minimaliste, adapté aux jeunes enfants">Minimaliste (Cycle 1)</option>
+                    <option value="Standard, équilibré et clair" selected>Standard (Cycle 2 & 3)</option>
+                    <option value="Hyper-détaillé, scientifique et complexe">Hyper-détaillé (Secondaire)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ratioSelect">Format de l'image (Ratio)</label>
+                <select id="ratioSelect">
+                    <option value="16:9">16:9 (Idéal pour projection en classe)</option>
+                    <option value="4:3">4:3 (Idéal pour document imprimé)</option>
+                    <option value="1:1">1:1 (Carré)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="typoSelect">Typographie des annotations</label>
+                <select id="typoSelect">
+                    <option value="Typographie grasse, très lisible et moderne">Claire et lisible</option>
+                    <option value="Style manuscrit arabe calligraphique classique">Calligraphie classique</option>
+                </select>
+            </div>
+
+            <button class="btn" id="generateBtn">Générer le Prompt</button>
+        </div>
+
+        <!-- Section Résultat -->
+        <div class="card">
+            <h2>3. Prompt Généré</h2>
+            <p style="margin-bottom: 1rem; font-size: 0.9rem; color: #666;">
+                Copiez ce texte et collez-le dans l'interface de l'IA Nanobanan pour générer votre image éducative.
+            </p>
+            <textarea id="resultPrompt" readonly placeholder="Le prompt généré apparaîtra ici..."></textarea>
+            <button class="btn" style="background-color: var(--primary-blue);" onclick="copyPrompt()">Copier le prompt</button>
+        </div>
+    </div>
+
+    <script>
+        // --- BASE DE DONNÉES DU CURRICULUM LIBANAIS ---
+        const curriculum = {
+            "Cycle 1 (Éducation de Base : EB1-EB3)": {
+                "EB1": [
+                    "Mon école et mon quartier : représentation simple",
+                    "Les éléments naturels vs les éléments construits",
+                    "Les différentes saisons au Liban",
+                    "La mer et la montagne au Liban",
+                    "Le trajet de la maison à l'école"
+                ],
+                "EB2": [
+                    "Le village libanais et ses caractéristiques",
+                    "La ville libanaise et la circulation",
+                    "Les points cardinaux (Nord, Sud, Est, Ouest)",
+                    "Les paysages agricoles au Liban",
+                    "Les moyens de transport terrestres et maritimes"
+                ],
+                "EB3": [
+                    "Le Liban sur la côte de la mer Méditerranée",
+                    "Les formes du relief (plaine, montagne, vallée)",
+                    "La carte : comment lire une légende simple",
+                    "Le climat méditerranéen au Liban",
+                    "Les ressources en eau au Liban (rivières, sources)"
+                ]
+            },
+            "Cycle 2 (Éducation de Base : EB4-EB6)": {
+                "EB4": [
+                    "Carte politique du Liban : Les Mohafazats (Gouvernorats)",
+                    "Les limites du Liban et les pays frontaliers",
+                    "Les deux chaînes de montagnes (Mont-Liban et Anti-Liban)",
+                    "La plaine de la Békaa et le fleuve Litani",
+                    "Le littoral libanais et les grandes villes côtières"
+                ],
+                "EB5": [
+                    "Le monde arabe : position géographique",
+                    "Le climat désertique vs le climat méditerranéen au Moyen-Orient",
+                    "La répartition de la population au Liban",
+                    "L'agriculture au Liban (cultures côtières vs en altitude)",
+                    "Le tourisme au Liban (sites naturels et historiques)"
+                ],
+                "EB6": [
+                    "Les continents et les océans du monde",
+                    "L'industrie au Liban : répartition spatiale",
+                    "Le commerce extérieur du Liban (importations/exportations)",
+                    "La déforestation au Liban et la préservation du cèdre",
+                    "Les fuseaux horaires et la rotation de la Terre"
+                ]
+            },
+            "Cycle 3 (Éducation de Base : EB7-EB9)": {
+                "EB7": [
+                    "Le monde arabe : caractéristiques du relief",
+                    "Les fleuves majeurs du monde arabe (Nil, Tigre, Euphrate)",
+                    "Les richesses pétrolières dans le Golfe Arabique",
+                    "La croissance démographique dans le monde arabe",
+                    "Le problème de l'eau au Moyen-Orient"
+                ],
+                "EB8": [
+                    "Les grands ensembles climatiques mondiaux",
+                    "Les paysages des zones froides, tempérées et chaudes",
+                    "Les catastrophes naturelles (séismes, volcans)",
+                    "La pollution de la mer Méditerranée",
+                    "Les grands pôles économiques mondiaux"
+                ],
+                "EB9 (Brevet)": [
+                    "Le Liban : Synthèse géographique et enjeux géopolitiques",
+                    "L'émigration libanaise : causes et répartition dans le monde",
+                    "Le secteur des services au Liban (banques, éducation, santé)",
+                    "Le monde rural et l'exode rural au Liban",
+                    "L'aménagement du territoire et l'urbanisation sauvage au Liban"
+                ]
+            },
+            "Cycle Secondaire": {
+                "Seconde (Sec 1)": [
+                    "La dynamique de la lithosphère et la géomorphologie",
+                    "L'atmosphère et la dynamique du climat mondial",
+                    "Les changements climatiques : impacts sur le monde arabe",
+                    "La mondialisation : acteurs et flux",
+                    "Les inégalités de développement Nord-Sud"
+                ],
+                "Première (Sec 2)": [
+                    "Les grandes puissances économiques mondiales",
+                    "La géographie de l'énergie : transition énergétique",
+                    "Les grandes métropoles mondiales et leurs problèmes",
+                    "La sécurité alimentaire dans le monde",
+                    "L'intégration régionale (Ex: Union Européenne)"
+                ],
+                "Terminale (Bac)": [
+                    "Le Liban et sa diaspora : un réseau mondial",
+                    "Les défis environnementaux au Liban (gestion des déchets, eau)",
+                    "Le monde arabe face à la mondialisation",
+                    "Géopolitique du Moyen-Orient contemporain",
+                    "Le rôle de Beyrouth comme métropole régionale"
+                ]
+            }
+        };
+
+        // --- DICTIONNAIRE DES DESCRIPTIONS D'IA ---
+        const descriptions = {
+            "imageType": {
+                "annotated": "Génère une carte avec des textes intégrés. (Les textes seront forcés en Arabe Fous7a).",
+                "blank": "Génère une base visuelle pure sans aucun texte pour permettre aux élèves de la compléter."
+            },
+            "styleSelect": {
+                "Carte physique classique": "Représentation traditionnelle montrant le relief et les cours d'eau en couleurs.",
+                "Carte politique épurée": "Affiche les frontières, les régions et les villes avec des couleurs distinctes.",
+                "Vue satellite réaliste": "Rendu photoréaliste vu de l'espace, idéal pour la couverture végétale ou l'urbanisation.",
+                "Topographie 3D isométrique": "Rendu en 3 dimensions, parfait pour expliquer les montagnes et les vallées (ex: Mont-Liban/Békaa).",
+                "Illustration enfantine vectorielle": "Style dessin animé, coloré et simplifié, parfait pour le Cycle 1."
+            }
+        };
+
+        // --- ELEMENTS DU DOM ---
+        const cycleSelect = document.getElementById('cycleSelect');
+        const classSelect = document.getElementById('classSelect');
+        const topicSelect = document.getElementById('topicSelect');
+        const freeTopicContainer = document.getElementById('freeTopicContainer');
+        const freeTopicInput = document.getElementById('freeTopicInput');
+        
+        const imageTypeRadios = document.getElementsByName('imageType');
+        const styleSelect = document.getElementById('styleSelect');
+        const detailSelect = document.getElementById('detailSelect');
+        const ratioSelect = document.getElementById('ratioSelect');
+        const typoSelect = document.getElementById('typoSelect');
+        
+        const infoImageType = document.getElementById('infoImageType');
+        const infoStyle = document.getElementById('infoStyle');
+        
+        const generateBtn = document.getElementById('generateBtn');
+        const resultPrompt = document.getElementById('resultPrompt');
+
+        // --- INITIALISATION DES FILTRES ---
+        // Remplir les cycles
+        for (let cycle in curriculum) {
+            let option = document.createElement('option');
+            option.value = cycle;
+            option.textContent = cycle;
+            cycleSelect.appendChild(option);
+        }
+
+        // Changement de Cycle
+        cycleSelect.addEventListener('change', function() {
+            classSelect.innerHTML = '<option value="">Sélectionnez une classe...</option>';
+            topicSelect.innerHTML = '<option value="">Sélectionnez d\'abord une classe...</option>';
+            classSelect.disabled = true;
+            topicSelect.disabled = true;
+            freeTopicContainer.style.display = 'none';
+
+            if (this.value) {
+                const classes = curriculum[this.value];
+                for (let cls in classes) {
+                    let option = document.createElement('option');
+                    option.value = cls;
+                    option.textContent = cls;
+                    classSelect.appendChild(option);
+                }
+                classSelect.disabled = false;
+            }
+        });
+
+        // Changement de Classe
+        classSelect.addEventListener('change', function() {
+            topicSelect.innerHTML = '<option value="">Sélectionnez un sujet...</option>';
+            topicSelect.disabled = true;
+            freeTopicContainer.style.display = 'none';
+
+            if (this.value) {
+                const topics = curriculum[cycleSelect.value][this.value];
+                topics.forEach(topic => {
+                    let option = document.createElement('option');
+                    option.value = topic;
+                    option.textContent = topic;
+                    topicSelect.appendChild(option);
+                });
+                
+                // Ajouter l'option "Thème libre"
+                let freeOption = document.createElement('option');
+                freeOption.value = "libre";
+                freeOption.textContent = "--> Autre (Thème libre) <--";
+                topicSelect.appendChild(freeOption);
+
+                topicSelect.disabled = false;
+            }
+        });
+
+        // Changement de Sujet (Gestion du thème libre)
+        topicSelect.addEventListener('change', function() {
+            if (this.value === "libre") {
+                freeTopicContainer.style.display = 'block';
+            } else {
+                freeTopicContainer.style.display = 'none';
+            }
+        });
+
+        // --- GESTION DES INTERACTIVITES (Paramètres IA) ---
+        
+        // Changement de Type d'image
+        imageTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                infoImageType.textContent = descriptions.imageType[this.value];
+                
+                if (this.value === 'blank') {
+                    typoSelect.disabled = true;
+                    typoSelect.title = "Indisponible car l'image sera vierge de texte.";
+                } else {
+                    typoSelect.disabled = false;
+                    typoSelect.title = "";
+                }
+            });
+        });
+
+        // Changement de Style
+        styleSelect.addEventListener('change', function() {
+            infoStyle.textContent = descriptions.styleSelect[this.value];
+        });
+
+        // --- GENERATION DU PROMPT ---
+        generateBtn.addEventListener('click', function() {
+            // Validations
+            if (!cycleSelect.value || !classSelect.value || !topicSelect.value) {
+                alert("Veuillez sélectionner le cycle, la classe et le sujet du curriculum.");
+                return;
+            }
+
+            let sujetFinal = topicSelect.value;
+            if (sujetFinal === "libre") {
+                if (!freeTopicInput.value.trim()) {
+                    alert("Veuillez saisir votre thème libre.");
+                    return;
+                }
+                sujetFinal = freeTopicInput.value.trim();
+            }
+
+            // Récupération des valeurs
+            const isAnnotated = document.querySelector('input[name="imageType"]:checked').value === 'annotated';
+            const style = styleSelect.value;
+            const detail = detailSelect.value;
+            const ratio = ratioSelect.value;
+            const typo = typoSelect.value;
+
+            // Construction du Prompt en Français
+            let prompt = `Agis comme un expert en création d'images pédagogiques pour le générateur d'images "Nanobanan".\n\n`;
+            prompt += `Ta tâche est de générer une image précise pour un cours de Géographie, adaptée au curriculum libanais (Niveau : ${classSelect.value}).\n\n`;
+            
+            prompt += `**SUJET PRINCIPAL :**\n`;
+            prompt += `Crée une image/carte illustrant clairement : "${sujetFinal}".\n\n`;
+
+            prompt += `**PARAMÈTRES VISUELS :**\n`;
+            prompt += `- Style graphique : ${style}.\n`;
+            prompt += `- Niveau de détail visuel : ${detail}.\n`;
+            prompt += `- Format d'image (Ratio) : --ar ${ratio.replace(':', ':')}\n\n`;
+
+            prompt += `**CONTRAINTES TEXTUELLES STRICTES :**\n`;
+            if (isAnnotated) {
+                prompt += `L'image DOIT inclure des annotations et des noms de lieux pour expliquer le sujet.\n`;
+                prompt += `!!! INSTRUCTION CRITIQUE !!! : Tous les textes, labels, et légendes apparaissant sur l'image doivent être rédigés EXCLUSIVEMENT en Arabe Fous7a (Arabe standard moderne) pur et exact. Aucune lettre latine, aucune erreur orthographique, et aucune lettre isolée/inversée n'est tolérée. Les mots arabes doivent être connectés correctement de droite à gauche.\n`;
+                prompt += `- Style typographique requis : ${typo}.\n`;
+            } else {
+                prompt += `Ceci est un document de travail pour les élèves (fond de carte ou illustration à compléter).\n`;
+                prompt += `!!! INSTRUCTION CRITIQUE !!! : L'image doit être STRICTEMENT VIERGE DE TOUT TEXTE. Il ne doit y avoir aucune lettre, aucun mot, aucun chiffre, et aucune étiquette générée sur l'image.\n`;
+            }
+
+            // Affichage
+            resultPrompt.value = prompt;
+        });
+
+        // --- FONCTION DE COPIE ---
+        function copyPrompt() {
+            if (!resultPrompt.value) {
+                alert("Générez d'abord un prompt !");
+                return;
+            }
+            resultPrompt.select();
+            document.execCommand("copy");
+            alert("Prompt copié dans le presse-papiers ! Vous pouvez maintenant le coller dans Nanobanan.");
+        }
+    </script>
+</body>
+</html>

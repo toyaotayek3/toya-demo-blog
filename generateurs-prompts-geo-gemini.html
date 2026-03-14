@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Prompts IA - Géographie Liban</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        geo: {
+                            light: '#e0f2fe', // sky-100
+                            blue: '#0284c7',  // sky-600
+                            darkblue: '#075985', // sky-800
+                            green: '#059669', // emerald-600
+                            earth: '#b45309', // amber-700
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #f8fafc; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="text-slate-800 antialiased font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-geo-darkblue via-geo-blue to-geo-green text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex items-center gap-4">
+            <svg class="w-10 h-10 text-white opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Générateur de Prompts IA <span class="text-geo-light font-medium text-lg ml-2">Spécialité Géographie Libanaise</span></h1>
+                <p class="text-sm text-sky-100 mt-1">Outil de création de requêtes optimisées pour l'IA "Nanobanan"</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Form -->
+        <div class="lg:col-span-8 space-y-6">
+            
+            <!-- Section 1: Curriculum -->
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                    <span class="bg-geo-blue text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</span>
+                    <h2 class="text-lg font-semibold text-slate-800">Curriculum Libanais</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Cycle -->
+                    <div>
+                        <label for="cycle" class="block text-sm font-medium text-slate-700 mb-1">Cycle d'enseignement</label>
+                        <select id="cycle" class="w-full rounded-md border-slate-300 border py-2 px-3 shadow-sm focus:border-geo-blue focus:ring-geo-blue sm:text-sm bg-slate-50 transition-colors">
+                            <option value="">Sélectionnez un cycle...</option>
+                            <option value="Cycle 1">Cycle 1 (EB1 - EB3)</option>
+                            <option value="Cycle 2">Cycle 2 (EB4 - EB6)</option>
+                            <option value="Cycle 3">Cycle 3 (EB7 - EB9)</option>
+                            <option value="Secondaire">Secondaire (Seconde - Terminale)</option>
+                        </select>
+                    </div>
+
+                    <!-- Classe -->
+                    <div>
+                        <label for="classe" class="block text-sm font-medium text-slate-700 mb-1">Classe</label>
+                        <select id="classe" disabled class="w-full rounded-md border-slate-300 border py-2 px-3 shadow-sm focus:border-geo-blue focus:ring-geo-blue sm:text-sm bg-slate-100 text-slate-500 transition-colors cursor-not-allowed">
+                            <option value="">Sélectionnez d'abord un cycle</option>
+                        </select>
+                    </div>
+
+                    <!-- Sujet -->
+                    <div class="md:col-span-2">
+                        <label for="sujet" class="block text-sm font-medium text-slate-700 mb-1">Sujet de la leçon</label>
+                        <select id="sujet" disabled class="w-full rounded-md border-slate-300 border py-2 px-3 shadow-sm focus:border-geo-blue focus:ring-geo-blue sm:text-sm bg-slate-100 text-slate-500 transition-colors cursor-not-allowed">
+                            <option value="">Sélectionnez d'abord une classe</option>
+                        </select>
+                    </div>
+
+                    <!-- Thème Libre (Hidden by default) -->
+                    <div id="themeLibreContainer" class="md:col-span-2 hidden fade-in">
+                        <label for="themeLibre" class="block text-sm font-medium text-geo-blue mb-1">Précisez votre thème libre</label>
+                        <input type="text" id="themeLibre" placeholder="Ex: La répartition des cèdres dans la réserve du Chouf..." class="w-full rounded-md border-geo-blue border py-2 px-3 shadow-sm focus:border-geo-darkblue focus:ring-geo-darkblue sm:text-sm bg-blue-50">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Image & IA Parameters -->
+            <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                    <span class="bg-geo-green text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</span>
+                    <h2 class="text-lg font-semibold text-slate-800">Paramètres IA Nanobanan</h2>
+                </div>
+
+                <!-- Info Box -->
+                <div id="paramDescription" class="mb-5 p-3 bg-slate-50 border border-slate-200 rounded-md text-sm text-slate-600 italic min-h-[48px] flex items-center">
+                    Survolez ou modifiez un paramètre pour voir son effet ici.
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                    
+                    <!-- Type d'image -->
+                    <div class="md:col-span-2 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <label class="block text-sm font-semibold text-slate-800 mb-2">Finalité pédagogique</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="imageType" value="annotated" checked class="text-geo-green focus:ring-geo-green w-4 h-4">
+                                <span class="text-sm text-slate-700">Image déjà annotée (Cours)</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="imageType" value="blank" class="text-geo-green focus:ring-geo-green w-4 h-4">
+                                <span class="text-sm text-slate-700">Image vierge à annoter (Évaluation)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Style Cartographique -->
+                    <div>
+                        <label for="styleCarto" class="block text-sm font-medium text-slate-700 mb-1">Style visuel</label>
+                        <select id="styleCarto" class="param-select w-full rounded-md border-slate-300 border py-2 px-3 focus:border-geo-green focus:ring-geo-green sm:text-sm" data-desc="Définit le rendu global de l'image générée par l'IA (réaliste, dessin, symbolique...).">
+                            <option value="Carte physique réaliste">Carte physique réaliste</option>
+                            <option value="Carte politique aux couleurs vives">Carte politique aux couleurs vives</option>
+                            <option value="Illustration pédagogique vectorielle">Illustration pédagogique vectorielle</option>
+                            <option value="Croquis géographique à main levée">Croquis géographique à main levée</option>
+                        </select>
+                    </div>
+
+                    <!-- Vue / Perspective -->
+                    <div>
+                        <label for="vuePerspective" class="block text-sm font-medium text-slate-700 mb-1">Perspective</label>
+                        <select id="vuePerspective" class="param-select w-full rounded-md border-slate-300 border py-2 px-3 focus:border-geo-green focus:ring-geo-green sm:text-sm" data-desc="Change l'angle de caméra de l'IA. Utile pour montrer le relief ou une zone étendue.">
+                            <option value="Vue zénithale (de haut)">Vue zénithale standard (2D)</option>
+                            <option value="Vue satellite haute résolution">Vue satellite photographique</option>
+                            <option value="Vue isométrique (3D inclinée)">Vue isométrique (3D inclinée)</option>
+                            <option value="Vue panoramique au sol">Vue panoramique depuis le sol</option>
+                        </select>
+                    </div>
+
+                    <!-- Topographie -->
+                    <div>
+                        <label for="topographie" class="block text-sm font-medium text-slate-700 mb-1">Niveau de Topographie</label>
+                        <select id="topographie" class="param-select w-full rounded-md border-slate-300 border py-2 px-3 focus:border-geo-green focus:ring-geo-green sm:text-sm" data-desc="Force l'IA à accentuer ou lisser les reliefs montagneux et vallées.">
+                            <option value="Relief naturel équilibré">Naturel et équilibré</option>
+                            <option value="Relief 3D fortement exagéré">Relief fortement exagéré (pédagogique)</option>
+                            <option value="Terrain plat (sans relief)">Plat (idéal pour frontières)</option>
+                            <option value="Courbes de niveau visibles">Avec courbes de niveau topographiques</option>
+                        </select>
+                    </div>
+
+                    <!-- Style d'annotation (Conditionnel) -->
+                    <div>
+                        <label for="styleAnnotation" class="block text-sm font-medium text-slate-700 mb-1">Typographie des annotations</label>
+                        <select id="styleAnnotation" class="param-select w-full rounded-md border-slate-300 border py-2 px-3 focus:border-geo-green focus:ring-geo-green sm:text-sm transition-colors" data-desc="Définit l'apparence des textes générés. Désactivé si l'image doit être vierge.">
+                            <option value="Grandes étiquettes claires avec fond contrasté">Grandes étiquettes claires</option>
+                            <option value="Police discrète fusionnée au paysage">Texte discret dans le paysage</option>
+                            <option value="Style typographique ancien de cartographie">Style cartographie antique</option>
+                        </select>
+                    </div>
+
+                    <!-- Format -->
+                    <div>
+                        <label for="ratio" class="block text-sm font-medium text-slate-700 mb-1">Format d'image (Ratio)</label>
+                        <select id="ratio" class="param-select w-full rounded-md border-slate-300 border py-2 px-3 focus:border-geo-green focus:ring-geo-green sm:text-sm" data-desc="Adapter aux écrans (16:9), aux documents A4 (3:4) ou aux présentations carrées.">
+                            <option value="16:9">Paysage (16:9) - Idéal pour TBI</option>
+                            <option value="4:3">Standard (4:3) - Présentations</option>
+                            <option value="3:4">Portrait (3:4) - Documents imprimés</option>
+                            <option value="1:1">Carré (1:1)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                    <button id="btnGenerate" class="bg-geo-darkblue hover:bg-geo-blue text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200 flex items-center gap-2 transform active:scale-95">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        Générer le Prompt
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Right Column: Result -->
+        <div class="lg:col-span-4 h-full">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-8 flex flex-col h-[calc(100vh-8rem)] min-h-[500px]">
+                <div class="flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                    <span class="bg-geo-earth text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">3</span>
+                    <h2 class="text-lg font-semibold text-slate-800">Résultat</h2>
+                </div>
+                
+                <p class="text-sm text-slate-500 mb-3">Copiez ce prompt et collez-le dans Nanobanan :</p>
+                
+                <div class="relative flex-grow flex flex-col">
+                    <textarea id="promptOutput" readonly class="w-full flex-grow p-4 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 text-sm focus:ring-0 focus:outline-none resize-none custom-scrollbar" placeholder="Votre prompt apparaîtra ici..."></textarea>
+                    
+                    <button id="btnCopy" class="absolute bottom-4 right-4 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded shadow-sm text-sm font-medium transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        Copier
+                    </button>
+                </div>
+                
+                <div id="copySuccess" class="text-green-600 text-sm font-medium text-center mt-3 opacity-0 transition-opacity">
+                    Copié dans le presse-papiers !
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- 1. Base de données du Curriculum Libanais ---
+        const curriculumData = {
+            "Cycle 1": {
+                "EB1": [
+                    "Ma maison et mon quartier", 
+                    "Les quatre saisons au Liban", 
+                    "La ferme et les animaux", 
+                    "La ville et le village", 
+                    "Les moyens de transport"
+                ],
+                "EB2": [
+                    "L'école et ses environs", 
+                    "Les points cardinaux simples", 
+                    "Le relief de mon village", 
+                    "La côte libanaise", 
+                    "Les climats (pluie, neige, soleil)"
+                ],
+                "EB3": [
+                    "La carte du Liban (formes de base)", 
+                    "Les montagnes libanaises (Mont Liban, Anti-Liban)", 
+                    "La plaine de la Békaa", 
+                    "Les fleuves du Liban (Litani)", 
+                    "Les pays frontaliers du Liban"
+                ]
+            },
+            "Cycle 2": {
+                "EB4": [
+                    "Le système solaire et la Terre", 
+                    "Les continents et les océans", 
+                    "Le Liban sur la carte du monde", 
+                    "Le monde arabe (introduction)", 
+                    "Les formes de relief (vallée, montagne, plaine)"
+                ],
+                "EB5": [
+                    "Le climat du monde arabe", 
+                    "Les ressources naturelles au Liban", 
+                    "La population du Liban (répartition)", 
+                    "Les secteurs économiques (agriculture, industrie)", 
+                    "La mer Méditerranée"
+                ],
+                "EB6": [
+                    "La géographie physique du monde arabe", 
+                    "Le monde (les grands climats)", 
+                    "Les catastrophes naturelles (séismes, volcans)", 
+                    "La pollution de l'eau et de l'air", 
+                    "Les forêts au Liban (les Cèdres)"
+                ]
+            },
+            "Cycle 3": {
+                "EB7": [
+                    "La géographie physique de l'Asie", 
+                    "La démographie du monde", 
+                    "Les grandes métropoles", 
+                    "L'agriculture dans les pays en développement", 
+                    "L'industrie en Asie"
+                ],
+                "EB8": [
+                    "La géographie physique de l'Europe et des Amériques", 
+                    "Les pays développés vs en développement", 
+                    "Les migrations mondiales", 
+                    "Le tourisme mondial", 
+                    "L'Union Européenne"
+                ],
+                "EB9": [
+                    "Le Liban (géographie physique détaillée)", 
+                    "Le Liban (démographie et migrations)", 
+                    "Le Liban (secteurs économiques détaillés)", 
+                    "Le monde arabe (enjeux économiques et stratégiques)", 
+                    "Le monde (les grands pôles économiques)"
+                ]
+            },
+            "Secondaire": {
+                "Seconde": [
+                    "L'environnement mondial", 
+                    "Les ressources en eau", 
+                    "Les changements climatiques", 
+                    "La dynamique des populations", 
+                    "La mondialisation"
+                ],
+                "Première": [
+                    "Les espaces ruraux et urbains", 
+                    "Les flux commerciaux", 
+                    "L'énergie dans le monde", 
+                    "Les puissances émergentes", 
+                    "La géopolitique du Moyen-Orient"
+                ],
+                "Terminale": [
+                    "L'économie libanaise dans la mondialisation", 
+                    "L'aménagement du territoire au Liban", 
+                    "Les inégalités de développement", 
+                    "La triade (USA, Europe, Japon)", 
+                    "Le système monde"
+                ]
+            }
+        };
+
+        // --- 2. Éléments du DOM ---
+        const elCycle = document.getElementById('cycle');
+        const elClasse = document.getElementById('classe');
+        const elSujet = document.getElementById('sujet');
+        const elThemeLibreContainer = document.getElementById('themeLibreContainer');
+        const elThemeLibre = document.getElementById('themeLibre');
+        
+        const radioImageTypes = document.querySelectorAll('input[name="imageType"]');
+        const elStyleAnnotation = document.getElementById('styleAnnotation');
+        const paramSelects = document.querySelectorAll('.param-select');
+        const elParamDescription = document.getElementById('paramDescription');
+        
+        const btnGenerate = document.getElementById('btnGenerate');
+        const elPromptOutput = document.getElementById('promptOutput');
+        const btnCopy = document.getElementById('btnCopy');
+        const elCopySuccess = document.getElementById('copySuccess');
+
+        // --- 3. Logique de l'interface (Filtres en cascade) ---
+
+        // Mise à jour des classes selon le cycle
+        elCycle.addEventListener('change', (e) => {
+            const cycle = e.target.value;
+            elClasse.innerHTML = '<option value="">Sélectionnez une classe...</option>';
+            elSujet.innerHTML = '<option value="">Sélectionnez d\'abord une classe</option>';
+            elSujet.disabled = true;
+            elThemeLibreContainer.classList.add('hidden');
+            
+            if (cycle && curriculumData[cycle]) {
+                elClasse.disabled = false;
+                elClasse.classList.remove('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
+                elClasse.classList.add('bg-white');
+                
+                for (const classe in curriculumData[cycle]) {
+                    const option = document.createElement('option');
+                    option.value = classe;
+                    option.textContent = classe;
+                    elClasse.appendChild(option);
+                }
+            } else {
+                elClasse.disabled = true;
+                elClasse.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
+                elClasse.classList.remove('bg-white');
+            }
+        });
+
+        // Mise à jour des sujets selon la classe
+        elClasse.addEventListener('change', (e) => {
+            const cycle = elCycle.value;
+            const classe = e.target.value;
+            elSujet.innerHTML = '<option value="">Sélectionnez un sujet...</option>';
+            elThemeLibreContainer.classList.add('hidden');
+            
+            if (cycle && classe && curriculumData[cycle][classe]) {
+                elSujet.disabled = false;
+                elSujet.classList.remove('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
+                elSujet.classList.add('bg-white');
+                
+                curriculumData[cycle][classe].forEach(sujet => {
+                    const option = document.createElement('option');
+                    option.value = sujet;
+                    option.textContent = sujet;
+                    elSujet.appendChild(option);
+                });
+                
+                // Option Thème Libre
+                const freeOption = document.createElement('option');
+                freeOption.value = "THEME_LIBRE";
+                freeOption.textContent = "✨ Thème libre (Personnalisé)";
+                freeOption.className = "font-semibold text-geo-blue";
+                elSujet.appendChild(freeOption);
+                
+            } else {
+                elSujet.disabled = true;
+                elSujet.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
+                elSujet.classList.remove('bg-white');
+            }
+        });
+
+        // Gestion de l'affichage du champ "Thème libre"
+        elSujet.addEventListener('change', (e) => {
+            if (e.target.value === "THEME_LIBRE") {
+                elThemeLibreContainer.classList.remove('hidden');
+                elThemeLibre.focus();
+            } else {
+                elThemeLibreContainer.classList.add('hidden');
+            }
+        });
+
+        // --- 4. Logique des paramètres IA et interactivité ---
+
+        // Désactivation conditionnelle (Image vierge -> on grise la typographie)
+        radioImageTypes.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.value === 'blank') {
+                    elStyleAnnotation.disabled = true;
+                    elStyleAnnotation.classList.add('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
+                    elParamDescription.textContent = "Image vierge sélectionnée : le style de texte est désactivé car l'IA ne génèrera aucun texte.";
+                } else {
+                    elStyleAnnotation.disabled = false;
+                    elStyleAnnotation.classList.remove('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
+                    elParamDescription.textContent = elStyleAnnotation.dataset.desc;
+                }
+            });
+        });
+
+        // Affichage dynamique des descriptions des paramètres
+        paramSelects.forEach(select => {
+            select.addEventListener('mouseenter', () => {
+                if (!select.disabled) {
+                    elParamDescription.textContent = select.dataset.desc;
+                }
+            });
+            select.addEventListener('change', () => {
+                if (!select.disabled) {
+                    elParamDescription.textContent = select.dataset.desc;
+                }
+            });
+        });
+
+        // Remettre un texte par défaut quand la souris quitte la zone
+        document.querySelector('.grid').addEventListener('mouseleave', () => {
+            elParamDescription.textContent = "Survolez ou modifiez un paramètre pour voir son effet ici.";
+        });
+
+
+        // --- 5. Génération du Prompt ---
+        btnGenerate.addEventListener('click', () => {
+            // Validation de base
+            if (!elSujet.value || elSujet.value === "") {
+                alert("Veuillez sélectionner une classe et un sujet du curriculum libanais.");
+                return;
+            }
+
+            let sujetFinal = elSujet.value;
+            if (sujetFinal === "THEME_LIBRE") {
+                if (!elThemeLibre.value.trim()) {
+                    alert("Veuillez préciser votre thème libre.");
+                    elThemeLibre.focus();
+                    return;
+                }
+                sujetFinal = elThemeLibre.value.trim();
+            }
+
+            // Récupération des paramètres
+            const isAnnotated = document.querySelector('input[name="imageType"]:checked').value === 'annotated';
+            const styleCarto = document.getElementById('styleCarto').value;
+            const vuePersp = document.getElementById('vuePerspective').value;
+            const topo = document.getElementById('topographie').value;
+            const ratio = document.getElementById('ratio').value;
+            const styleAnno = document.getElementById('styleAnnotation').value;
+            
+            const contextePedagogique = `Niveau scolaire : ${elCycle.value}, classe de ${elClasse.value} (Curriculum Libanais).`;
+
+            // Construction du Prompt
+            let promptParts = [];
+            
+            promptParts.push("Génère une image de géographie de haute qualité, détaillée et pédagogique.");
+            promptParts.push(`\nSujet principal : "${sujetFinal}".`);
+            promptParts.push(`Contexte d'utilisation : ${contextePedagogique}`);
+            
+            promptParts.push(`\n--- PARAMÈTRES VISUELS ---`);
+            promptParts.push(`- Style visuel : ${styleCarto}`);
+            promptParts.push(`- Perspective : ${vuePersp}`);
+            promptParts.push(`- Relief et Topographie : ${topo}`);
+            promptParts.push(`- Ratio d'image (aspect ratio) : --ar ${ratio.replace(':', ':')}`); // Format courant pour les IA
+
+            promptParts.push(`\n--- INSTRUCTIONS D'ANNOTATION (STRICT) ---`);
+            if (isAnnotated) {
+                promptParts.push(`Ceci est une image de cours qui DOIT être annotée.`);
+                promptParts.push(`STYLE DU TEXTE : ${styleAnno}.`);
+                promptParts.push(`CONTRAINTE LINGUISTIQUE MAJEURE : Toutes les inscriptions, légendes, noms de lieux et textes apparaissant sur l'image doivent être rédigés STRICTEMENT en Arabe littéral (Fous7a) pur. L'orthographe doit être exacte, précise et irréprochable. Ne générez aucun texte en français, anglais ou charabia. Seul l'arabe classique est autorisé sur la carte.`);
+            } else {
+                promptParts.push(`Ceci est une image d'évaluation (fond de carte).`);
+                promptParts.push(`L'image DOIT être totalement vierge de tout texte. Il ne doit y avoir AUCUNE lettre, AUCUN mot, AUCUNE légende textuelle nulle part sur l'image, afin de laisser l'espace libre pour que les élèves puissent l'annoter eux-mêmes au stylo.`);
+            }
+
+            // Affichage
+            elPromptOutput.value = promptParts.join('\n');
+            
+            // Animation flash pour montrer la mise à jour
+            elPromptOutput.classList.remove('bg-slate-50');
+            elPromptOutput.classList.add('bg-geo-light');
+            setTimeout(() => {
+                elPromptOutput.classList.remove('bg-geo-light');
+                elPromptOutput.classList.add('bg-slate-50');
+            }, 300);
+        });
+
+        // --- 6. Copier dans le presse-papiers ---
+        btnCopy.addEventListener('click', () => {
+            if (!elPromptOutput.value) return;
+            
+            // Utilisation de l'API moderne ou fallback execCommand
+            try {
+                document.execCommand('copy'); // Fallback sûr pour les iframes
+                navigator.clipboard.writeText(elPromptOutput.value).then(showSuccess).catch(() => {
+                    const tempInput = document.createElement("textarea");
+                    tempInput.value = elPromptOutput.value;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(tempInput);
+                    showSuccess();
+                });
+            } catch (err) {
+                // Fallback final
+                const tempInput = document.createElement("textarea");
+                tempInput.value = elPromptOutput.value;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempInput);
+                showSuccess();
+            }
+        });
+
+        function showSuccess() {
+            elCopySuccess.style.opacity = '1';
+            setTimeout(() => {
+                elCopySuccess.style.opacity = '0';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

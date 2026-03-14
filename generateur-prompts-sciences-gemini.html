@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Prompts Sciences - Nanobanan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom scrollbar for better UX */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-200 selection:text-blue-900">
+
+    <div class="max-w-5xl mx-auto p-4 md:p-8">
+        
+        <!-- Header -->
+        <header class="mb-8 text-center md:text-left">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-blue-900 mb-2">
+                <i class="fa-solid fa-flask text-blue-600 mr-2"></i>Catalogue de Prompts Sciences
+            </h1>
+            <p class="text-slate-600 text-lg">Générez des requêtes ultra-précises pour l'IA d'illustration <span class="font-semibold text-amber-500">Nanobanan</span>, basées sur les programmes de l'Éducation Nationale (BO).</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Formulaire (Left Column) -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Section 1 : Cadrage Pédagogique (BO) -->
+                <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2"><i class="fa-solid fa-book-open text-blue-500 mr-2"></i>Cadrage Pédagogique</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1" for="cycle">Cycle d'enseignement</label>
+                            <select id="cycle" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="" disabled selected>Sélectionnez un cycle...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1" for="classe">Classe</label>
+                            <select id="classe" disabled class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg disabled:opacity-50 disabled:bg-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="" disabled selected>En attente du cycle...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1" for="sujet">Sujet Scientifique (BO)</label>
+                        <select id="sujet" disabled class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg disabled:opacity-50 disabled:bg-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors mb-2">
+                            <option value="" disabled selected>En attente de la classe...</option>
+                        </select>
+                    </div>
+
+                    <div id="custom-sujet-container" class="hidden fade-in mt-3">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1" for="custom-sujet">Saisissez votre sujet libre</label>
+                        <input type="text" id="custom-sujet" placeholder="Ex: Le fonctionnement d'un volcan..." class="w-full p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </section>
+
+                <!-- Section 2 : Type d'illustration -->
+                <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2"><i class="fa-solid fa-image text-emerald-500 mr-2"></i>Besoins pour le document</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1" for="image-type">Type d'image</label>
+                            <select id="image-type" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                                <option value="annotee">Image déjà annotée</option>
+                                <option value="vierge">Image vierge à annoter (sans texte)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1" for="langue">Langue des annotations</label>
+                            <select id="langue" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors">
+                                <option value="francais">Français</option>
+                                <option value="anglais">Anglais</option>
+                            </select>
+                            <p id="langue-help" class="text-xs text-amber-600 mt-1 hidden"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Désactivé car l'image sera générée sans texte.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 3 : Paramètres IA Nanobanan -->
+                <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2"><i class="fa-solid fa-sliders text-purple-500 mr-2"></i>Paramètres IA "Nanobanan"</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Style -->
+                        <div class="param-group">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1" for="ia-style">Style graphique</label>
+                            <select id="ia-style" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="schema_vectoriel">Schéma vectoriel clair</option>
+                                <option value="realiste_3d">Rendu réaliste 3D</option>
+                                <option value="aquarelle">Illustration scientifique aquarelle</option>
+                                <option value="flat_design">Flat design moderne</option>
+                            </select>
+                            <p class="text-xs text-slate-500 mt-2 bg-slate-100 p-2 rounded param-desc" id="desc-style"></p>
+                        </div>
+
+                        <!-- Ratio -->
+                        <div class="param-group">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1" for="ia-ratio">Format (Ratio)</label>
+                            <select id="ia-ratio" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="16:9">Paysage (16:9) - Diaporama</option>
+                                <option value="4:3">Standard (4:3) - Document Word</option>
+                                <option value="1:1">Carré (1:1) - Fiche vocabulaire</option>
+                            </select>
+                            <p class="text-xs text-slate-500 mt-2 bg-slate-100 p-2 rounded param-desc" id="desc-ratio"></p>
+                        </div>
+
+                        <!-- Detail -->
+                        <div class="param-group">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1" for="ia-detail">Niveau de détail</label>
+                            <select id="ia-detail" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="simplifie">Simplifié (Éléments essentiels uniquement)</option>
+                                <option value="moyen" selected>Moyen (Équilibré pour le collège)</option>
+                                <option value="complexe">Complexe (Haute fidélité scientifique)</option>
+                            </select>
+                            <p class="text-xs text-slate-500 mt-2 bg-slate-100 p-2 rounded param-desc" id="desc-detail"></p>
+                        </div>
+
+                        <!-- Éclairage -->
+                        <div class="param-group">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1" for="ia-light">Éclairage / Fond</label>
+                            <select id="ia-light" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="fond_blanc">Fond blanc pur (Idéal impression)</option>
+                                <option value="studio">Éclairage studio (Mise en valeur du sujet)</option>
+                                <option value="naturel">Lumière naturelle (En contexte)</option>
+                            </select>
+                            <p class="text-xs text-slate-500 mt-2 bg-slate-100 p-2 rounded param-desc" id="desc-light"></p>
+                        </div>
+                    </div>
+                </section>
+
+                <button id="btn-generate" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-lg font-bold rounded-xl shadow-lg transform transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Générer le prompt Nanobanan
+                </button>
+
+            </div>
+
+            <!-- Résultat (Right Column - Sticky) -->
+            <div class="lg:col-span-1">
+                <div class="sticky top-8 bg-slate-900 rounded-2xl shadow-xl overflow-hidden border border-slate-700 flex flex-col h-[500px]">
+                    <div class="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
+                        <h3 class="text-white font-semibold"><i class="fa-solid fa-terminal text-green-400 mr-2"></i>Prompt Final</h3>
+                        <button id="btn-copy" class="text-slate-300 hover:text-white transition-colors" title="Copier dans le presse-papier">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="p-4 flex-grow relative">
+                        <textarea id="result-prompt" readonly class="w-full h-full bg-transparent text-green-300 font-mono text-sm resize-none focus:outline-none p-2" placeholder="Le prompt généré apparaîtra ici. Sélectionnez vos options et cliquez sur Générer."></textarea>
+                        
+                        <!-- Toast notification de copie -->
+                        <div id="copy-toast" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold opacity-0 transition-opacity duration-300 pointer-events-none">
+                            Copié !
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- BASE DE DONNÉES : PROGRAMMES BO FRANÇAIS ---
+        const curriculumData = {
+            "cycle1": {
+                label: "Cycle 1 (Maternelle)",
+                classes: ["Petite Section", "Moyenne Section", "Grande Section"],
+                sujets: [
+                    "Les parties du corps humain (tête, tronc, membres)",
+                    "Le cycle de vie d'une plante (de la graine à la plante)",
+                    "Flotte ou coule (les propriétés des matériaux dans l'eau)",
+                    "Les régimes alimentaires des animaux familiers",
+                    "Les ombres et la lumière du soleil"
+                ]
+            },
+            "cycle2": {
+                label: "Cycle 2 (CP, CE1, CE2)",
+                classes: ["CP", "CE1", "CE2"],
+                sujets: [
+                    "Les trois états de l'eau (solide, liquide, gaz)",
+                    "Le développement des végétaux (germination et croissance)",
+                    "Les mouvements corporels (os, muscles, articulations)",
+                    "Les chaînes alimentaires simples dans un écosystème",
+                    "Le circuit électrique simple (pile, fils, ampoule)"
+                ]
+            },
+            "cycle3": {
+                label: "Cycle 3 (CM1, CM2, 6ème)",
+                classes: ["CM1", "CM2", "6ème"],
+                sujets: [
+                    "Le système solaire et l'orbite des planètes",
+                    "La digestion et le trajet des aliments dans le corps",
+                    "La reproduction humaine (changements à la puberté)",
+                    "Le grand cycle de l'eau dans la nature",
+                    "Les sources d'énergie (renouvelables et non renouvelables)"
+                ]
+            },
+            "cycle4": {
+                label: "Cycle 4 (5ème, 4ème, 3ème)",
+                classes: ["5ème", "4ème", "3ème"],
+                sujets: [
+                    "Le système nerveux (cerveau, moelle épinière, nerfs)",
+                    "La tectonique des plaques et la formation des séismes",
+                    "La génétique, les chromosomes et la molécule d'ADN",
+                    "Les réactions chimiques (modèle moléculaire de la combustion)",
+                    "Le système immunitaire (réaction face aux bactéries/virus)"
+                ]
+            },
+            "lycee": {
+                label: "Lycée (Seconde, Première, Terminale)",
+                classes: ["Seconde", "Première", "Terminale"],
+                sujets: [
+                    "L'ultrastructure de la cellule eucaryote et ses organites",
+                    "L'expression de l'information génétique (transcription, traduction)",
+                    "La dynamique des masses d'air et le système climatique mondial",
+                    "Le métabolisme cellulaire (bilan de la photosynthèse et respiration)",
+                    "L'évolution, l'arbre phylogénétique et la sélection naturelle"
+                ]
+            }
+        };
+
+        // --- DESCRIPTIONS DES PARAMÈTRES IA ---
+        const aiParamsDescriptions = {
+            style: {
+                "schema_vectoriel": "Lignes épurées, aplats de couleurs distincts. Idéal pour une compréhension schématique sans distraction.",
+                "realiste_3d": "Rendu volumétrique texturé. Parfait pour captiver l'attention des élèves sur des sujets complexes (ex: anatomie, cellules).",
+                "aquarelle": "Style doux et artistique, souvent utilisé pour la botanique ou la faune en cycle 1 et 2.",
+                "flat_design": "Moderne, géométrique et coloré. Très lisible pour des infographies de synthèse."
+            },
+            ratio: {
+                "16:9": "Format large, optimisé pour être projeté au tableau via un vidéoprojecteur ou dans une présentation.",
+                "4:3": "Format classique, idéal pour une intégration dans un document polycopié A4.",
+                "1:1": "Format carré, utile pour des flashcards, des vignettes ou des exercices d'association."
+            },
+            detail: {
+                "simplifie": "Focalise l'attention de l'élève sur l'essentiel en retirant les éléments parasites. Adapté aux cycles 1 et 2.",
+                "moyen": "Bon équilibre entre rigueur scientifique et lisibilité. Adapté aux cycles 3 et 4.",
+                "complexe": "Très riche en informations visuelles, respect strict des proportions scientifiques. Adapté au Lycée."
+            },
+            light: {
+                "fond_blanc": "Isole complètement le sujet. Économise l'encre lors de l'impression des polycopiés.",
+                "studio": "Éclairage dramatique mettant en valeur les reliefs du sujet (très bien avec le style 3D).",
+                "naturel": "Place le sujet dans son environnement lumineux habituel (ex: une plante au soleil)."
+            }
+        };
+
+        // --- ELEMENTS DU DOM ---
+        const selectCycle = document.getElementById('cycle');
+        const selectClasse = document.getElementById('classe');
+        const selectSujet = document.getElementById('sujet');
+        const customSujetContainer = document.getElementById('custom-sujet-container');
+        const inputCustomSujet = document.getElementById('custom-sujet');
+        
+        const selectImageType = document.getElementById('image-type');
+        const selectLangue = document.getElementById('langue');
+        const langueHelp = document.getElementById('langue-help');
+
+        const selectStyle = document.getElementById('ia-style');
+        const selectRatio = document.getElementById('ia-ratio');
+        const selectDetail = document.getElementById('ia-detail');
+        const selectLight = document.getElementById('ia-light');
+
+        const btnGenerate = document.getElementById('btn-generate');
+        const btnCopy = document.getElementById('btn-copy');
+        const resultPrompt = document.getElementById('result-prompt');
+        const copyToast = document.getElementById('copy-toast');
+
+        // --- INITIALISATION ---
+        function init() {
+            // Remplir les cycles
+            for (const [key, data] of Object.entries(curriculumData)) {
+                let option = document.createElement('option');
+                option.value = key;
+                option.textContent = data.label;
+                selectCycle.appendChild(option);
+            }
+
+            // Init descriptions IA
+            updateDescriptions();
+        }
+
+        // --- GESTIONNAIRES D'ÉVÉNEMENTS ---
+
+        // Changement de Cycle
+        selectCycle.addEventListener('change', function() {
+            const cycleKey = this.value;
+            const data = curriculumData[cycleKey];
+
+            // Reset & Enable Classe
+            selectClasse.innerHTML = '<option value="" disabled selected>Sélectionnez la classe...</option>';
+            selectClasse.disabled = false;
+            data.classes.forEach(cls => {
+                let option = document.createElement('option');
+                option.value = cls;
+                option.textContent = cls;
+                selectClasse.appendChild(option);
+            });
+
+            // Reset Sujet
+            selectSujet.innerHTML = '<option value="" disabled selected>En attente de la classe...</option>';
+            selectSujet.disabled = true;
+            customSujetContainer.classList.add('hidden');
+        });
+
+        // Changement de Classe
+        selectClasse.addEventListener('change', function() {
+            const cycleKey = selectCycle.value;
+            const data = curriculumData[cycleKey];
+
+            // Reset & Enable Sujet
+            selectSujet.innerHTML = '<option value="" disabled selected>Sélectionnez un sujet du BO...</option>';
+            selectSujet.disabled = false;
+            
+            data.sujets.forEach(sujet => {
+                let option = document.createElement('option');
+                option.value = sujet;
+                option.textContent = sujet;
+                selectSujet.appendChild(option);
+            });
+
+            // Ajouter option Thème Libre
+            let customOption = document.createElement('option');
+            customOption.value = "custom";
+            customOption.textContent = "✨ Autre sujet (Thème libre)...";
+            customOption.className = "font-semibold text-blue-600";
+            selectSujet.appendChild(customOption);
+
+            customSujetContainer.classList.add('hidden');
+        });
+
+        // Changement de Sujet (Gestion du thème libre)
+        selectSujet.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customSujetContainer.classList.remove('hidden');
+                inputCustomSujet.focus();
+            } else {
+                customSujetContainer.classList.add('hidden');
+            }
+        });
+
+        // Changement du Type d'image (Désactivation de la langue si vierge)
+        selectImageType.addEventListener('change', function() {
+            if (this.value === 'vierge') {
+                selectLangue.disabled = true;
+                selectLangue.classList.add('opacity-50', 'cursor-not-allowed');
+                langueHelp.classList.remove('hidden');
+            } else {
+                selectLangue.disabled = false;
+                selectLangue.classList.remove('opacity-50', 'cursor-not-allowed');
+                langueHelp.classList.add('hidden');
+            }
+        });
+
+        // Mise à jour dynamique des descriptions IA
+        function updateDescriptions() {
+            document.getElementById('desc-style').textContent = aiParamsDescriptions.style[selectStyle.value];
+            document.getElementById('desc-ratio').textContent = aiParamsDescriptions.ratio[selectRatio.value];
+            document.getElementById('desc-detail').textContent = aiParamsDescriptions.detail[selectDetail.value];
+            document.getElementById('desc-light').textContent = aiParamsDescriptions.light[selectLight.value];
+        }
+
+        [selectStyle, selectRatio, selectDetail, selectLight].forEach(select => {
+            select.addEventListener('change', updateDescriptions);
+        });
+
+        // Génération du Prompt Final
+        btnGenerate.addEventListener('click', function() {
+            // Validations basiques
+            if (!selectCycle.value || !selectClasse.value || !selectSujet.value) {
+                alert("Veuillez sélectionner un cycle, une classe et un sujet avant de générer le prompt.");
+                return;
+            }
+
+            let sujetFinal = selectSujet.value;
+            if (sujetFinal === 'custom') {
+                sujetFinal = inputCustomSujet.value.trim();
+                if (sujetFinal === "") {
+                    alert("Veuillez saisir votre sujet libre.");
+                    inputCustomSujet.focus();
+                    return;
+                }
+            }
+
+            const classe = selectClasse.value;
+            const isVierge = selectImageType.value === 'vierge';
+            const langue = selectLangue.options[selectLangue.selectedIndex].text;
+            
+            const style = selectStyle.options[selectStyle.selectedIndex].text;
+            const ratio = selectRatio.value;
+            const detail = selectDetail.options[selectDetail.selectedIndex].text;
+            const light = selectLight.options[selectLight.selectedIndex].text;
+
+            // Construction de la chaîne de caractères (Prompt)
+            let prompt = `Crée une illustration scientifique détaillée représentant : "${sujetFinal}".\n\n`;
+            
+            prompt += `📌 TYPE DE DOCUMENT :\n`;
+            if (isVierge) {
+                prompt += `- L'image doit être strictement VIERGE de tout texte. Ne génère aucune lettre, aucun mot, ni aucune légende. Prévois des espaces clairs ou des lignes de pointage pour qu'un professeur puisse rajouter ses propres annotations plus tard.\n`;
+            } else {
+                prompt += `- L'image doit inclure des annotations claires, précises et scientifiquement justes.\n`;
+                prompt += `- Langue obligatoire des annotations : ${langue}.\n`;
+            }
+
+            prompt += `\n🎨 PARAMÈTRES GRAPHIQUES (Pour Nanobanan) :\n`;
+            prompt += `- Style visuel : ${style}.\n`;
+            prompt += `- Format de l'image (Ratio) : ${ratio}.\n`;
+            prompt += `- Niveau de détail : ${detail}.\n`;
+            prompt += `- Éclairage et environnement : ${light}.\n`;
+
+            prompt += `\n🎓 CONTEXTE PÉDAGOGIQUE :\n`;
+            prompt += `- Cette image est destinée à des élèves de classe de ${classe}. Adapte la complexité visuelle pour ce niveau d'âge.\n`;
+            
+            prompt += `\n(Assure-toi que l'image respecte les codes classiques des schémas scolaires scientifiques : clarté, rigueur, couleurs bien contrastées).`;
+
+            // Affichage
+            resultPrompt.value = prompt;
+            
+            // Animation visuelle
+            resultPrompt.parentElement.classList.add('ring-2', 'ring-green-400', 'transition', 'duration-300');
+            setTimeout(() => {
+                resultPrompt.parentElement.classList.remove('ring-2', 'ring-green-400');
+            }, 500);
+        });
+
+        // Copie dans le presse-papier
+        btnCopy.addEventListener('click', function() {
+            if(resultPrompt.value === "") return;
+            
+            navigator.clipboard.writeText(resultPrompt.value).then(() => {
+                copyToast.style.opacity = '1';
+                setTimeout(() => {
+                    copyToast.style.opacity = '0';
+                }, 2000);
+            }).catch(err => {
+                // Fallback pour les iframes (ex: environnement Canvas restrictif)
+                resultPrompt.select();
+                document.execCommand('copy');
+                copyToast.style.opacity = '1';
+                setTimeout(() => {
+                    copyToast.style.opacity = '0';
+                }, 2000);
+            });
+        });
+
+        // Lancer l'initialisation au chargement
+        init();
+
+    </script>
+</body>
+</html>

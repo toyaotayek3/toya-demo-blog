@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue de Prompts Sciences - Nanobanan IA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2b6cb0;
+            --primary-hover: #2c5282;
+            --secondary: #38b2ac;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --border-color: #e2e8f0;
+            --disabled-bg: #edf2f7;
+            --radius: 10px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .card h2 {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-main);
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            background-color: white;
+            transition: border-color 0.2s;
+        }
+
+        select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.2);
+        }
+
+        select:disabled {
+            background-color: var(--disabled-bg);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .description-box {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background-color: var(--disabled-bg);
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 5px;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .generate-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .generate-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .result-card {
+            background-color: #2d3748;
+            color: white;
+        }
+
+        .result-card h2 {
+            color: #63b3ed;
+            border-bottom-color: #4a5568;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border-radius: var(--radius);
+            border: 1px solid #4a5568;
+            background-color: #1a202c;
+            color: #e2e8f0;
+            font-family: monospace;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #63b3ed;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Catalogue de Prompts Sciences</h1>
+        <p>Générateur de requêtes IA (Nanobanan) pour illustrations pédagogiques conformes au BO.</p>
+    </header>
+
+    <div class="grid">
+        <!-- Colonne 1 : Pédagogie (BO) -->
+        <div class="card">
+            <h2>1. Contexte Pédagogique</h2>
+            
+            <div class="form-group">
+                <label for="cycle">Cycle d'enseignement</label>
+                <select id="cycle">
+                    <option value="">-- Choisissez un cycle --</option>
+                    <option value="cycle1">Cycle 1 (Maternelle)</option>
+                    <option value="cycle2">Cycle 2 (CP - CE2)</option>
+                    <option value="cycle3">Cycle 3 (CM1 - 6ème)</option>
+                    <option value="cycle4">Cycle 4 (5ème - 3ème)</option>
+                    <option value="lycee">Lycée (2nde - Terminale)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="classe">Classe</label>
+                <select id="classe" disabled>
+                    <option value="">-- Choisissez d'abord un cycle --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="sujet">Sujet Scientifique (Bulletin Officiel)</label>
+                <select id="sujet" disabled>
+                    <option value="">-- Choisissez d'abord une classe --</option>
+                </select>
+            </div>
+
+            <div class="form-group hidden" id="customSujetGroup">
+                <label for="customSujet">Votre sujet libre</label>
+                <input type="text" id="customSujet" placeholder="Ex: Anatomie d'une fleur locale...">
+            </div>
+        </div>
+
+        <!-- Colonne 2 : Paramètres IA -->
+        <div class="card">
+            <h2>2. Paramètres IA "Nanobanan"</h2>
+            
+            <div class="form-group">
+                <label for="imageType">Type d'image</label>
+                <select id="imageType">
+                    <option value="annotated">Image déjà annotée (légendes incluses)</option>
+                    <option value="blank">Image vierge à annoter par les élèves</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="language">Langue des annotations</label>
+                <select id="language">
+                    <option value="Français">Français</option>
+                    <option value="Anglais">Anglais</option>
+                </select>
+                <div class="description-box" id="langDesc">Langue utilisée par l'IA pour générer le texte sur l'image.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="style">Style Graphique</label>
+                <select id="style">
+                    <option value="Illustration vectorielle flat design">Vectoriel (Flat Design)</option>
+                    <option value="Planche anatomique vintage">Planche scientifique vintage</option>
+                    <option value="Schéma technique minimaliste">Schéma minimaliste (Lignes claires)</option>
+                    <option value="Rendu 3D réaliste">Rendu 3D hyper-réaliste</option>
+                    <option value="Dessin au trait noir et blanc">Dessin au trait (Coloriage)</option>
+                </select>
+                <div class="description-box" id="styleDesc">Des couleurs unies, sans texture, parfait pour la clarté pédagogique.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="detail">Niveau de détail</label>
+                <select id="detail">
+                    <option value="Simplifié pour enfants">Simplifié (Éléments essentiels uniquement)</option>
+                    <option value="Intermédiaire équilibré" selected>Intermédiaire</option>
+                    <option value="Complexe et scientifiquement rigoureux">Complexe (Haute rigueur scientifique)</option>
+                </select>
+                <div class="description-box" id="detailDesc">Un juste milieu entre détails scientifiques et lisibilité.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="ratio">Format de l'image (Ratio)</label>
+                <select id="ratio">
+                    <option value="--ar 16:9">Paysage (16:9) - Pour diaporama</option>
+                    <option value="--ar 3:4">Portrait (3:4) - Pour fiche A4</option>
+                    <option value="--ar 1:1">Carré (1:1) - Pour insertion texte</option>
+                </select>
+                <div class="description-box" id="ratioDesc">Format large, idéal pour les projections en classe au tableau.</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="generate-btn" id="generateBtn">Générer le prompt Nanobanan</button>
+
+    <div class="card result-card">
+        <h2>Votre Prompt (à copier-coller dans l'IA)</h2>
+        <textarea id="promptOutput" readonly placeholder="Le prompt généré apparaîtra ici..."></textarea>
+    </div>
+</div>
+
+<script>
+    // 1. BASE DE DONNÉES DU PROGRAMME SCOLAIRE (BO)
+    const boData = {
+        cycle1: {
+            classes: ["Petite Section", "Moyenne Section", "Grande Section"],
+            sujets: [
+                "Le cycle de vie d'une plante (de la graine à la plante)",
+                "Les grandes parties du corps humain et le visage",
+                "Flotte ou coule : expérimentation avec différents matériaux",
+                "Les différents états de l'eau (solide/glace et liquide)",
+                "L'alimentation et les régimes des animaux communs"
+            ]
+        },
+        cycle2: {
+            classes: ["CP", "CE1", "CE2"],
+            sujets: [
+                "Le développement et les besoins d'un végétal (eau, lumière)",
+                "Le mouvement corporel (os, muscles et articulations)",
+                "Les changements d'états de la matière (fusion et solidification)",
+                "Les chaînes alimentaires simples (producteurs et consommateurs)",
+                "Le circuit électrique simple (pile, fils, ampoule, interrupteur)"
+            ]
+        },
+        cycle3: {
+            classes: ["CM1", "CM2", "6ème"],
+            sujets: [
+                "Le système solaire et la position de la Terre",
+                "Le développement d'un insecte (métamorphose)",
+                "Réseaux trophiques et rôle des décomposeurs dans le sol",
+                "Le système respiratoire humain (poumons et alvéoles)",
+                "La structure interne de la Terre (volcans et séismes)"
+            ]
+        },
+        cycle4: {
+            classes: ["5ème", "4ème", "3ème"],
+            sujets: [
+                "La tectonique des plaques et la dérive des continents",
+                "La reproduction humaine (appareil reproducteur et fécondation)",
+                "Le système immunitaire (phagocytose et anticorps)",
+                "La structure de la matière (modèles de l'atome et molécules)",
+                "La circulation sanguine (cœur, artères et veines)"
+            ]
+        },
+        lycee: {
+            classes: ["Seconde", "Première", "Terminale"],
+            sujets: [
+                "L'ultrastructure de la cellule eucaryote (organites)",
+                "L'expression génétique (transcription de l'ADN et traduction)",
+                "Le cycle cellulaire (mécanismes de la mitose et de la méiose)",
+                "Le spectre des ondes électromagnétiques",
+                "Le complexe enzyme-substrat et la réaction enzymatique"
+            ]
+        }
+    };
+
+    // 2. DESCRIPTIONS DES PARAMÈTRES IA
+    const descriptions = {
+        style: {
+            "Illustration vectorielle flat design": "Des couleurs unies, sans texture, parfait pour la clarté pédagogique.",
+            "Planche anatomique vintage": "Style ancien, papier jauni, idéal pour l'histoire des sciences.",
+            "Schéma technique minimaliste": "Lignes épurées, fond blanc, parfait pour les fiches d'exercices.",
+            "Rendu 3D réaliste": "Volume, ombres et lumières détaillés (ex: pour la biologie cellulaire).",
+            "Dessin au trait noir et blanc": "Idéal pour être imprimé et colorié par les élèves."
+        },
+        detail: {
+            "Simplifié pour enfants": "Omet les détails complexes pour se concentrer sur l'essentiel (Cycles 1 et 2).",
+            "Intermédiaire équilibré": "Un juste milieu entre détails scientifiques et lisibilité (Cycles 3 et 4).",
+            "Complexe et scientifiquement rigoureux": "Haute précision anatomique ou physique (Idéal pour le Lycée)."
+        },
+        ratio: {
+            "--ar 16:9": "Format large, idéal pour les projections en classe au tableau.",
+            "--ar 3:4": "Format vertical, parfaitement adapté à l'impression sur feuille A4.",
+            "--ar 1:1": "Format carré, polyvalent pour les documents d'évaluation."
+        }
+    };
+
+    // 3. LOGIQUE DE L'INTERFACE (DOM Elements)
+    const cycleSelect = document.getElementById('cycle');
+    const classeSelect = document.getElementById('classe');
+    const sujetSelect = document.getElementById('sujet');
+    const customSujetGroup = document.getElementById('customSujetGroup');
+    const customSujetInput = document.getElementById('customSujet');
+    
+    const imageTypeSelect = document.getElementById('imageType');
+    const languageSelect = document.getElementById('language');
+    const langDesc = document.getElementById('langDesc');
+    
+    const styleSelect = document.getElementById('style');
+    const detailSelect = document.getElementById('detail');
+    const ratioSelect = document.getElementById('ratio');
+    
+    // Filtres en cascade
+    cycleSelect.addEventListener('change', function() {
+        const cycle = this.value;
+        classeSelect.innerHTML = '<option value="">-- Choisissez une classe --</option>';
+        
+        // CORRECTION DE L'ERREUR : Utilisation de guillemets doubles (") pour éviter le conflit avec l'apostrophe de "d'abord"
+        sujetSelect.innerHTML = "<option value=\"\">-- Choisissez d'abord une classe --</option>";
+        
+        sujetSelect.disabled = true;
+        customSujetGroup.classList.add('hidden');
+
+        if (cycle) {
+            classeSelect.disabled = false;
+            boData[cycle].classes.forEach(cls => {
+                classeSelect.innerHTML += `<option value="${cls}">${cls}</option>`;
+            });
+        } else {
+            classeSelect.disabled = true;
+        }
+    });
+
+    classeSelect.addEventListener('change', function() {
+        const cycle = cycleSelect.value;
+        sujetSelect.innerHTML = '<option value="">-- Choisissez un sujet --</option>';
+        
+        if (this.value) {
+            sujetSelect.disabled = false;
+            boData[cycle].sujets.forEach(sujet => {
+                sujetSelect.innerHTML += `<option value="${sujet}">${sujet}</option>`;
+            });
+            sujetSelect.innerHTML += `<option value="custom">✨ Thème libre (Saisir manuellement)</option>`;
+        } else {
+            sujetSelect.disabled = true;
+            customSujetGroup.classList.add('hidden');
+        }
+    });
+
+    sujetSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customSujetGroup.classList.remove('hidden');
+        } else {
+            customSujetGroup.classList.add('hidden');
+        }
+    });
+
+    // Incompatibilités (Image vierge -> Désactive langue)
+    imageTypeSelect.addEventListener('change', function() {
+        if (this.value === 'blank') {
+            languageSelect.disabled = true;
+            langDesc.innerText = "Désactivé : Une image vierge ne contient aucun texte.";
+        } else {
+            languageSelect.disabled = false;
+            langDesc.innerText = "Langue utilisée par l'IA pour générer le texte sur l'image.";
+        }
+    });
+
+    // Mise à jour des descriptions dynamiques
+    styleSelect.addEventListener('change', function() {
+        document.getElementById('styleDesc').innerText = descriptions.style[this.value];
+    });
+    detailSelect.addEventListener('change', function() {
+        document.getElementById('detailDesc').innerText = descriptions.detail[this.value];
+    });
+    ratioSelect.addEventListener('change', function() {
+        document.getElementById('ratioDesc').innerText = descriptions.ratio[this.value];
+    });
+
+    // 4. GÉNÉRATION DU PROMPT
+    document.getElementById('generateBtn').addEventListener('click', function() {
+        // Récupération des données
+        const classe = classeSelect.value;
+        let sujet = sujetSelect.value;
+        if (sujet === 'custom') sujet = customSujetInput.value;
+        
+        const type = imageTypeSelect.value;
+        const langue = languageSelect.value;
+        const style = styleSelect.value;
+        const detail = detailSelect.value;
+        const ratio = ratioSelect.value;
+
+        // Validation basique
+        if (!classe || !sujet) {
+            alert("Veuillez sélectionner au minimum une classe et un sujet.");
+            return;
+        }
+
+        // Construction du texte
+        let prompt = `Crée une illustration scientifique professionnelle et pédagogique à destination d'élèves francophones de niveau ${classe}.\n\n`;
+        prompt += `SUJET PRINCIPAL : ${sujet}\n\n`;
+        
+        if (type === 'annotated') {
+            prompt += `TYPE D'IMAGE : Schéma éducatif complet. L'image DOIT intégrer des légendes, des flèches pointant vers les éléments clés, et le texte doit être écrit explicitement en ${langue}.\n`;
+        } else {
+            prompt += `TYPE D'IMAGE : Schéma muet / vierge à compléter. L'image DOIT inclure des flèches de pointage et des cadres vides blancs, mais NE DOIT CONTENIR AUCUNE LETTRE, AUCUN MOT NI AUCUN TEXTE, pour que les élèves puissent écrire eux-mêmes.\n`;
+        }
+
+        prompt += `\nSTYLE GRAPHIQUE : ${style}.\n`;
+        prompt += `NIVEAU DE DÉTAIL : ${detail}.\n`;
+        prompt += `ÉCLAIRAGE ET FOND : Fond uni et clair pour faciliter la lecture, éclairage neutre de type studio.\n\n`;
+        
+        prompt += `PARAMÈTRES NANOBANAN : ${ratio} --v 5.0 --q 2`;
+
+        // Affichage
+        document.getElementById('promptOutput').value = prompt;
+    });
+</script>
+
+</body>
+</html>

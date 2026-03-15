@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompts Histoire - Liban | Nanobanan AI</title>
+    <style>
+        :root {
+            /* Palette de couleurs "Histoire & Antiquité" */
+            --primary-brown: #5c3a21; /* Marron cuir / historique */
+            --secondary-gold: #b8860b; /* Or antique / Bronze */
+            --terracotta: #c15b3d; /* Terre cuite / poterie antique */
+            --parchment-bg: #fdf5e6; /* Fond parchemin / vieux papier */
+            --light-sepia: #f4ebd8;
+            --dark-ink: #2b1d0e; /* Encre noire/marron */
+            --border-radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', 'Times New Roman', serif; /* Typographie plus historique pour l'interface globale */
+        }
+
+        body {
+            background-color: var(--parchment-bg);
+            color: var(--dark-ink);
+            line-height: 1.6;
+            background-image: radial-gradient(var(--light-sepia) 10%, transparent 10%);
+            background-size: 20px 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-brown), #3a2212);
+            color: #fdf5e6;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-bottom: 5px solid var(--secondary-gold);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        header h1 {
+            font-size: 2.4rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+            font-family: 'Georgia', serif;
+            text-transform: uppercase;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: var(--secondary-gold);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 20px rgba(92, 58, 33, 0.1);
+            border-top: 5px solid var(--terracotta);
+        }
+
+        h2 {
+            color: var(--primary-brown);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--light-sepia);
+            padding-bottom: 0.5rem;
+            font-family: 'Georgia', serif;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-brown);
+        }
+
+        select, input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d2b48c;
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: #fffaf0;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--terracotta);
+            box-shadow: 0 0 0 3px rgba(193, 91, 61, 0.2);
+        }
+
+        select:disabled, input:disabled {
+            background-color: #eaddcf;
+            color: #8b7355;
+            cursor: not-allowed;
+            border-color: #d2b48c;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .radio-group label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 8px;
+            border: 1px solid #eaddcf;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .radio-group label:hover {
+            background-color: var(--light-sepia);
+        }
+
+        #freeTopicContainer {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background-color: var(--light-sepia);
+            border-left: 4px solid var(--secondary-gold);
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: var(--dark-ink);
+            min-height: 40px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-brown);
+            color: #fdf5e6;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            margin-top: 1.5rem;
+            font-family: 'Segoe UI', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background-color: #462b18;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        #resultPrompt {
+            height: 380px;
+            resize: vertical;
+            background-color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border: 2px solid var(--secondary-gold);
+            color: #000;
+        }
+
+        .btn-copy {
+            background-color: var(--terracotta);
+        }
+
+        .btn-copy:hover {
+            background-color: #a84b31;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Générateur de Prompts Histoire</h1>
+        <p>Curriculum Libanais (التاريخ) | IA Nanobanan</p>
+    </header>
+
+    <div class="container">
+        <!-- Section Formulaire -->
+        <div class="card">
+            <h2>1. Choix de la Période (Curriculum)</h2>
+            
+            <div class="form-group">
+                <label for="cycleSelect">Cycle Scolaire</label>
+                <select id="cycleSelect">
+                    <option value="">Sélectionnez un cycle...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="classSelect">Classe</label>
+                <select id="classSelect" disabled>
+                    <option value="">Sélectionnez d'abord un cycle...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="topicSelect">Sujet Historique</label>
+                <select id="topicSelect" disabled>
+                    <option value="">Sélectionnez d'abord une classe...</option>
+                </select>
+                <div id="freeTopicContainer">
+                    <input type="text" id="freeTopicInput" placeholder="Saisissez un événement ou personnage historique libre...">
+                </div>
+            </div>
+
+            <h2>2. Paramètres Visuels (Nanobanan)</h2>
+
+            <div class="form-group">
+                <label>Type de Document Historique</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="docType" value="scene" checked> Scène historique (Reconstitution d'un événement)</label>
+                    <label><input type="radio" name="docType" value="map"> Carte historique (Frontières, routes commerciales)</label>
+                    <label><input type="radio" name="docType" value="portrait"> Portrait d'une figure historique</label>
+                    <label><input type="radio" name="docType" value="artifact"> Vestige archéologique / Objet du passé</label>
+                </div>
+                <div class="info-box" id="infoDocType">Recrée une scène vivante du passé avec des personnages en costumes d'époque.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="textSelect">Annotations et Dates</label>
+                <select id="textSelect">
+                    <option value="annotated">Avec annotations (Noms, dates, lieux en Arabe)</option>
+                    <option value="blank">Image vierge de tout texte (À faire deviner aux élèves)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="styleSelect">Style Artistique / Époque</label>
+                <select id="styleSelect">
+                    <option value="Illustration de manuel scolaire classique, style ligne claire">Illustration scolaire standard (Claire et colorée)</option>
+                    <option value="Peinture à l'huile classique de style Renaissance ou 19e siècle">Peinture classique / Tableau historique</option>
+                    <option value="Gravure ancienne sur bois ou lithographie monochrome">Gravure ancienne / Lithographie</option>
+                    <option value="Reconstitution photoréaliste et cinématographique (CGI de haute qualité)">Reconstitution photoréaliste / Cinématographique</option>
+                    <option value="Style parchemin antique dessiné à l'encre">Style Parchemin / Carte au trésor</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ratioSelect">Format de l'image (Ratio)</label>
+                <select id="ratioSelect">
+                    <option value="16:9">16:9 (Panorama / Diaporama TBI)</option>
+                    <option value="4:3">4:3 (Document imprimé / Manuel)</option>
+                    <option value="1:1">1:1 (Carré)</option>
+                </select>
+            </div>
+
+            <button class="btn" id="generateBtn">Générer le Prompt</button>
+        </div>
+
+        <!-- Section Résultat -->
+        <div class="card">
+            <h2>3. Prompt Historique Généré</h2>
+            <p style="margin-bottom: 1rem; font-size: 0.9rem; color: #555;">
+                Copiez ce prompt optimisé et collez-le dans l'IA Nanobanan. Les instructions pour générer de l'Arabe Fous7a exact sur les dates et noms sont incluses.
+            </p>
+            <textarea id="resultPrompt" readonly placeholder="Le prompt généré apparaîtra ici..."></textarea>
+            <button class="btn btn-copy" onclick="copyPrompt()">Copier le prompt</button>
+        </div>
+    </div>
+
+    <script>
+        // --- BASE DE DONNÉES DU CURRICULUM LIBANAIS (HISTOIRE) ---
+        // Note: L'histoire formelle débute généralement en EB3/EB4, les premières années couvrent la notion du temps.
+        const curriculum = {
+            "Cycle 1 (Éducation de Base : EB1-EB3)": {
+                "EB1": [
+                    "La notion du temps : hier, aujourd'hui, demain",
+                    "L'histoire de ma famille : parents et grands-parents",
+                    "Les objets anciens vs les objets modernes",
+                    "Les moyens de transport dans le passé",
+                    "Les jeux et jouets de nos grands-parents"
+                ],
+                "EB2": [
+                    "L'arbre généalogique de la famille",
+                    "L'histoire de mon école ou de mon village",
+                    "L'évolution de l'habitation : maisons anciennes libanaises",
+                    "Les vieux métiers au Liban (potier, tisserand...)",
+                    "Comment on communiquait avant (lettres vs internet)"
+                ],
+                "EB3": [
+                    "La notion de décennie et de siècle",
+                    "Les sources de l'histoire : ruines, textes, objets",
+                    "Le Musée National de Beyrouth (découverte simple)",
+                    "Introduction aux premiers habitants du Liban",
+                    "La légende d'Europe et de Cadmos"
+                ]
+            },
+            "Cycle 2 (Éducation de Base : EB4-EB6)": {
+                "EB4": [
+                    "La Préhistoire au Liban (Les grottes, ex: Jeita, Ksar Akil)",
+                    "Les Phéniciens : les cités-états (Tyr, Sidon, Byblos)",
+                    "Les Phéniciens : l'invention de l'alphabet",
+                    "Les Phéniciens : la navigation, le commerce et la pourpre",
+                    "L'Empire Romain au Liban : Les temples de Baalbeck"
+                ],
+                "EB5": [
+                    "L'apparition de l'Islam et son expansion",
+                    "Le Liban sous les Omeyyades (Aanjar)",
+                    "Le Liban sous les Abbassides",
+                    "Les Croisades : construction de châteaux (ex: Beaufort, Saida)",
+                    "La vie quotidienne dans une cité médiévale au Proche-Orient"
+                ],
+                "EB6": [
+                    "Les Mamelouks au Liban et à Tripoli",
+                    "L'Empire Ottoman : Les débuts et la prise de Constantinople",
+                    "Les grandes découvertes géographiques (Christophe Colomb, Vasco de Gama)",
+                    "La Renaissance en Europe : arts et sciences",
+                    "La Révolution Française (notions de base sur les droits)"
+                ]
+            },
+            "Cycle 3 (Éducation de Base : EB7-EB9)": {
+                "EB7": [
+                    "Les civilisations de l'Orient Ancien : La Mésopotamie",
+                    "L'Égypte Pharaonique : pyramides et société",
+                    "La civilisation grecque : Athènes et la démocratie",
+                    "Alexandre le Grand et la conquête de Tyr",
+                    "L'Empire Romain : l'organisation et l'armée"
+                ],
+                "EB8": [
+                    "La conquête ottomane du Proche-Orient (Bataille de Marj Dabiq 1516)",
+                    "L'Émirat du Mont-Liban : Fakhreddine II le Grand",
+                    "L'Émirat Chehab : L'Émir Béchir II au Palais de Beiteddine",
+                    "Le Régime du Caïmacamat (1842-1860)",
+                    "La Révolution Industrielle en Europe et ses impacts"
+                ],
+                "EB9 (Brevet)": [
+                    "La Première Guerre mondiale : La Grande Famine au Liban (Safar Barlik)",
+                    "La chute de l'Empire ottoman et les Accords Sykes-Picot (1916)",
+                    "La proclamation de l'État du Grand Liban (1er Septembre 1920)",
+                    "La Constitution Libanaise de 1926",
+                    "Le combat pour l'Indépendance du Liban et le Pacte National (1943)"
+                ]
+            },
+            "Cycle Secondaire": {
+                "Seconde (Sec 1)": [
+                    "Préhistoire et Révolution Néolithique au Proche-Orient",
+                    "Les cités-États sumériennes et akkadiennes",
+                    "La civilisation phénicienne : expansion en Méditerranée (Carthage)",
+                    "Le Moyen Âge : la féodalité en Europe",
+                    "L'Âge d'Or de la civilisation arabo-musulmane (Sciences et philosophie)"
+                ],
+                "Première (Sec 2)": [
+                    "Les réformes ottomanes (Tanzimat) au 19e siècle",
+                    "La Mutasarrifiya du Mont-Liban (1861-1915)",
+                    "La Nahda : la renaissance culturelle arabe (19e siècle)",
+                    "L'expansion coloniale européenne au 19e siècle",
+                    "Les causes profondes de la Première Guerre mondiale"
+                ],
+                "Terminale (Bac)": [
+                    "Le mandat français sur le Liban et la Syrie",
+                    "La Seconde Guerre mondiale : causes et conséquences",
+                    "L'Indépendance du Liban et l'évacuation des troupes étrangères (1946)",
+                    "Le conflit arabo-israélien : la guerre de 1948 (Nakba) et l'exode palestinien",
+                    "La Guerre Froide : blocs de l'Est et de l'Ouest"
+                ]
+            }
+        };
+
+        // --- DICTIONNAIRE DES DESCRIPTIONS D'IA ---
+        const descriptions = {
+            "docType": {
+                "scene": "Recrée une scène vivante du passé avec des personnages, de l'action et des costumes d'époque.",
+                "map": "Génère une carte géographique ancienne montrant des routes commerciales, des empires ou des batailles.",
+                "portrait": "Crée un portrait formel ou en action d'un personnage historique clé (ex: Fakhreddine, Pharaon).",
+                "artifact": "Illustre un objet antique, une ruine (ex: Baalbeck, Beiteddine) ou un document (ex: alphabet phénicien)."
+            }
+        };
+
+        // --- ELEMENTS DU DOM ---
+        const cycleSelect = document.getElementById('cycleSelect');
+        const classSelect = document.getElementById('classSelect');
+        const topicSelect = document.getElementById('topicSelect');
+        const freeTopicContainer = document.getElementById('freeTopicContainer');
+        const freeTopicInput = document.getElementById('freeTopicInput');
+        
+        const docTypeRadios = document.getElementsByName('docType');
+        const textSelect = document.getElementById('textSelect');
+        const styleSelect = document.getElementById('styleSelect');
+        const ratioSelect = document.getElementById('ratioSelect');
+        
+        const infoDocType = document.getElementById('infoDocType');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultPrompt = document.getElementById('resultPrompt');
+
+        // --- INITIALISATION DES FILTRES ---
+        for (let cycle in curriculum) {
+            let option = document.createElement('option');
+            option.value = cycle;
+            option.textContent = cycle;
+            cycleSelect.appendChild(option);
+        }
+
+        cycleSelect.addEventListener('change', function() {
+            classSelect.innerHTML = '<option value="">Sélectionnez une classe...</option>';
+            topicSelect.innerHTML = '<option value="">Sélectionnez d\'abord une classe...</option>';
+            classSelect.disabled = true;
+            topicSelect.disabled = true;
+            freeTopicContainer.style.display = 'none';
+
+            if (this.value) {
+                const classes = curriculum[this.value];
+                for (let cls in classes) {
+                    let option = document.createElement('option');
+                    option.value = cls;
+                    option.textContent = cls;
+                    classSelect.appendChild(option);
+                }
+                classSelect.disabled = false;
+            }
+        });
+
+        classSelect.addEventListener('change', function() {
+            topicSelect.innerHTML = '<option value="">Sélectionnez un événement ou sujet...</option>';
+            topicSelect.disabled = true;
+            freeTopicContainer.style.display = 'none';
+
+            if (this.value) {
+                const topics = curriculum[cycleSelect.value][this.value];
+                topics.forEach(topic => {
+                    let option = document.createElement('option');
+                    option.value = topic;
+                    option.textContent = topic;
+                    topicSelect.appendChild(option);
+                });
+                
+                let freeOption = document.createElement('option');
+                freeOption.value = "libre";
+                freeOption.textContent = "--> Autre (Sujet libre) <--";
+                topicSelect.appendChild(freeOption);
+
+                topicSelect.disabled = false;
+            }
+        });
+
+        topicSelect.addEventListener('change', function() {
+            if (this.value === "libre") {
+                freeTopicContainer.style.display = 'block';
+            } else {
+                freeTopicContainer.style.display = 'none';
+            }
+        });
+
+        // --- GESTION DES INTERACTIVITÉS ---
+        docTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                infoDocType.textContent = descriptions.docType[this.value];
+            });
+        });
+
+        // --- GENERATION DU PROMPT ---
+        generateBtn.addEventListener('click', function() {
+            if (!cycleSelect.value || !classSelect.value || !topicSelect.value) {
+                alert("Veuillez sélectionner le cycle, la classe et le sujet du curriculum.");
+                return;
+            }
+
+            let sujetFinal = topicSelect.value;
+            if (sujetFinal === "libre") {
+                if (!freeTopicInput.value.trim()) {
+                    alert("Veuillez saisir votre sujet historique libre.");
+                    return;
+                }
+                sujetFinal = freeTopicInput.value.trim();
+            }
+
+            // Récupération des valeurs
+            const docType = document.querySelector('input[name="docType"]:checked').value;
+            const hasText = textSelect.value === 'annotated';
+            const style = styleSelect.value;
+            const ratio = ratioSelect.value;
+
+            let docLabel = "";
+            if(docType === "scene") docLabel = "Une scène historique détaillée reconstituant un événement du passé";
+            if(docType === "map") docLabel = "Une carte géographique historique";
+            if(docType === "portrait") docLabel = "Un portrait historique détaillé d'une figure clé";
+            if(docType === "artifact") docLabel = "Une illustration d'un vestige archéologique, d'une ruine ou d'un objet d'époque";
+
+            // Construction du Prompt
+            let prompt = `Agis comme un historien expert et un illustrateur de matériel pédagogique pour l'IA "Nanobanan".\n\n`;
+            prompt += `Ta tâche est de générer une illustration historique précise et adaptée au programme d'Histoire du Liban (Niveau de l'élève : ${classSelect.value}).\n\n`;
+            
+            prompt += `**SUJET HISTORIQUE PRINCIPAL :**\n`;
+            prompt += `Type d'image : ${docLabel}.\n`;
+            prompt += `Événement / Thème précis à illustrer : "${sujetFinal}".\n`;
+            prompt += `Assure-toi que les vêtements, l'architecture et les éléments culturels soient historiquement exacts par rapport à la période concernée (ex: Phéniciens, Ottomans, Mandat français, etc.).\n\n`;
+
+            prompt += `**PARAMÈTRES VISUELS :**\n`;
+            prompt += `- Style artistique demandé : ${style}.\n`;
+            prompt += `- Format d'image (Ratio) : --ar ${ratio.replace(':', ':')}\n\n`;
+
+            prompt += `**CONTRAINTES TEXTUELLES STRICTES :**\n`;
+            if (hasText) {
+                prompt += `L'image DOIT inclure des annotations (ex: dates importantes, noms de personnages, noms de lieux ou de batailles intégrés à l'image comme légendes).\n`;
+                prompt += `!!! INSTRUCTION ABSOLUE !!! : Tout texte, chiffre, ou date généré sur l'image doit être écrit EXCLUSIVEMENT en Arabe Fous7a (اللغة العربية الفصحى) pur et standard, ou en chiffres arabes (indiens). L'orthographe doit être impeccable, les lettres correctement liées de droite à gauche. Aucune lettre latine ou symbole étranger n'est toléré.\n`;
+            } else {
+                prompt += `Cette image servira d'exercice de reconnaissance ou de fond de document pour les élèves.\n`;
+                prompt += `!!! INSTRUCTION ABSOLUE !!! : L'image doit être TOTALEMENT VIERGE DE TOUT TEXTE. Il ne doit y avoir aucune lettre, aucun chiffre, aucune date, ni aucune étiquette générée sur la carte ou l'illustration.\n`;
+            }
+
+            resultPrompt.value = prompt;
+        });
+
+        // --- FONCTION DE COPIE ---
+        function copyPrompt() {
+            if (!resultPrompt.value) {
+                alert("Générez d'abord un prompt !");
+                return;
+            }
+            resultPrompt.select();
+            document.execCommand("copy");
+            alert("Prompt d'Histoire copié avec succès ! Vous pouvez le coller dans l'IA Nanobanan.");
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompts Éducation Civique - Liban | Nanobanan AI</title>
+    <style>
+        :root {
+            /* Palette de couleurs "Éducation Civique & Liban" */
+            --primary-red: #9e1423; /* Rouge institutionnel foncé */
+            --secondary-red: #c1121f; /* Rouge drapeau assombri */
+            --primary-green: #2b9348; /* Vert cèdre */
+            --light-green: #e9f5ec;
+            --paper-bg: #fdfdf9; /* Fond couleur papier/parchemin */
+            --dark-text: #2b2b2b;
+            --border-radius: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--paper-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-red), var(--secondary-red));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-bottom: 5px solid var(--primary-green);
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: #f8d7da;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-top: 5px solid var(--primary-green);
+        }
+
+        h2 {
+            color: var(--primary-red);
+            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            border-bottom: 2px solid var(--light-green);
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark-text);
+        }
+
+        select, input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(43, 147, 72, 0.2);
+        }
+
+        select:disabled, input:disabled {
+            background-color: #f1f3f5;
+            color: #adb5bd;
+            cursor: not-allowed;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .radio-group label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 8px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .radio-group label:hover {
+            background-color: var(--light-green);
+        }
+
+        #freeTopicContainer {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background-color: var(--light-green);
+            border-left: 4px solid var(--primary-green);
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #444;
+            min-height: 40px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-green);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            margin-top: 1.5rem;
+        }
+
+        .btn:hover {
+            background-color: #1e6e35;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        #resultPrompt {
+            height: 350px;
+            resize: vertical;
+            background-color: #f8f9fa;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border-color: var(--primary-red);
+        }
+
+        .btn-copy {
+            background-color: var(--primary-red);
+        }
+
+        .btn-copy:hover {
+            background-color: var(--secondary-red);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Générateur de Prompts Éducation Civique</h1>
+        <p>Curriculum Libanais (التربية الوطنية) | IA Nanobanan</p>
+    </header>
+
+    <div class="container">
+        <!-- Section Formulaire -->
+        <div class="card">
+            <h2>1. Choix du Sujet (Curriculum)</h2>
+            
+            <div class="form-group">
+                <label for="cycleSelect">Cycle Scolaire</label>
+                <select id="cycleSelect">
+                    <option value="">Sélectionnez un cycle...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="classSelect">Classe</label>
+                <select id="classSelect" disabled>
+                    <option value="">Sélectionnez d'abord un cycle...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="topicSelect">Sujet de la leçon (Civisme)</label>
+                <select id="topicSelect" disabled>
+                    <option value="">Sélectionnez d'abord une classe...</option>
+                </select>
+                <div id="freeTopicContainer">
+                    <input type="text" id="freeTopicInput" placeholder="Saisissez un thème de civisme libre...">
+                </div>
+            </div>
+
+            <h2>2. Paramètres du document (Nanobanan)</h2>
+
+            <div class="form-group">
+                <label>Format Pédagogique</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="formatType" value="scene" checked> Scène de la vie quotidienne / Situation problème</label>
+                    <label><input type="radio" name="formatType" value="infographic"> Affiche / Infographie de sensibilisation</label>
+                    <label><input type="radio" name="formatType" value="diagram"> Schéma institutionnel (Organigramme de l'État)</label>
+                </div>
+                <div class="info-box" id="infoFormatType">Idéal pour lancer un débat en classe sur un comportement citoyen (ex: respect, pollution).</div>
+            </div>
+
+            <div class="form-group">
+                <label for="textSelect">Présence de texte (Bulles/Titres)</label>
+                <select id="textSelect">
+                    <option value="annotated">Avec texte (Titres, bulles de dialogue en Arabe)</option>
+                    <option value="blank">Sans aucun texte (Image muette à interpréter)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="styleSelect">Style Visuel</label>
+                <select id="styleSelect">
+                    <option value="Illustration style livre pour enfants, couleurs vives">Livre pour enfants (Idéal Cycle 1)</option>
+                    <option value="Bande dessinée ligne claire (style Tintin)">Bande dessinée (Idéal Cycle 2/3)</option>
+                    <option value="Design vectoriel moderne flat design">Flat Design / Infographie</option>
+                    <option value="Photographie réaliste de reportage social">Photoréalisme (Idéal Secondaire)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ratioSelect">Format de l'image (Ratio)</label>
+                <select id="ratioSelect">
+                    <option value="16:9">16:9 (Écran / Projection TBI)</option>
+                    <option value="3:4">3:4 (Portrait / Affiche imprimée)</option>
+                    <option value="1:1">1:1 (Carré / Manuel scolaire)</option>
+                </select>
+            </div>
+
+            <button class="btn" id="generateBtn">Générer le Prompt</button>
+        </div>
+
+        <!-- Section Résultat -->
+        <div class="card">
+            <h2>3. Prompt Généré</h2>
+            <p style="margin-bottom: 1rem; font-size: 0.9rem; color: #666;">
+                Copiez ce prompt optimisé et collez-le dans l'IA Nanobanan. Les contraintes linguistiques (Arabe Fous7a) y sont rigoureusement intégrées.
+            </p>
+            <textarea id="resultPrompt" readonly placeholder="Le prompt généré apparaîtra ici..."></textarea>
+            <button class="btn btn-copy" onclick="copyPrompt()">Copier le prompt</button>
+        </div>
+    </div>
+
+    <script>
+        // --- BASE DE DONNÉES DU CURRICULUM LIBANAIS (ÉDUCATION CIVIQUE) ---
+        const curriculum = {
+            "Cycle 1 (Éducation de Base : EB1-EB3)": {
+                "EB1": [
+                    "Les règles de politesse (Dire bonjour, merci, s'excuser)",
+                    "Ma famille, ma maison et mon rôle à la maison",
+                    "Le drapeau libanais et l'hymne national",
+                    "La sécurité routière : traverser sur le passage piéton",
+                    "Garder ma classe et mon école propres"
+                ],
+                "EB2": [
+                    "Mon quartier / mon village et ses habitants",
+                    "Les métiers qui aident la communauté (pompier, médecin, policier)",
+                    "Aider les personnes âgées ou en situation de handicap",
+                    "Introduction aux droits de l'enfant (droit de jouer, d'apprendre)",
+                    "Protéger la nature et les animaux autour de moi"
+                ],
+                "EB3": [
+                    "La municipalité et le rôle du chef de municipalité (Maire/Raïs el Baladiyé)",
+                    "Les services publics essentiels (eau, électricité, hôpitaux)",
+                    "Le patrimoine culturel et historique libanais",
+                    "L'égalité et le respect entre les filles et les garçons",
+                    "Accepter la différence et refuser les moqueries (Harcèlement)"
+                ]
+            },
+            "Cycle 2 (Éducation de Base : EB4-EB6)": {
+                "EB4": [
+                    "La notion d'État : qu'est-ce que l'État libanais ?",
+                    "La Croix-Rouge Libanaise et la Défense Civile",
+                    "Pourquoi payer des impôts ? (Leur utilité pour les services)",
+                    "La liberté d'expression dans le respect des autres",
+                    "L'élection des délégués de classe (première expérience démocratique)"
+                ],
+                "EB5": [
+                    "Introduction à la Constitution libanaise (Doustour)",
+                    "Les trois pouvoirs de l'État (Exécutif, Législatif, Judiciaire)",
+                    "Le rôle de la presse, des médias et la désinformation",
+                    "Le travail bénévole et les associations de la société civile",
+                    "La protection de l'environnement : tri des déchets et reboisement"
+                ],
+                "EB6": [
+                    "La Déclaration Universelle des Droits de l'Homme",
+                    "Le système démocratique vs les systèmes autoritaires",
+                    "La justice au Liban : le rôle des tribunaux et des juges",
+                    "Le rôle de l'Armée libanaise et des Forces de Sécurité Intérieure",
+                    "Les devoirs du citoyen responsable envers sa patrie"
+                ]
+            },
+            "Cycle 3 (Éducation de Base : EB7-EB9)": {
+                "EB7": [
+                    "Les institutions de l'État libanais en détail",
+                    "La différence entre la loi civile et la loi pénale",
+                    "Le droit du travail, les syndicats et les grèves",
+                    "Le rôle des ONG (Organisations Non Gouvernementales) au Liban",
+                    "La protection du consommateur au Liban"
+                ],
+                "EB8": [
+                    "Le Parlement libanais (Chambre des députés) et la création des lois",
+                    "Le budget de l'État : impôts directs et indirects",
+                    "La Caisse Nationale de Sécurité Sociale (CNSS) au Liban",
+                    "La lutte contre la corruption et l'importance de la transparence",
+                    "Les relations internationales du Liban"
+                ],
+                "EB9 (Brevet)": [
+                    "Le système politique libanais : La démocratie parlementaire consensuelle",
+                    "La loi électorale libanaise et le droit de vote",
+                    "La coexistence (Vivre-ensemble / Al-Aych Al-Mouchtarak) au Liban",
+                    "L'Organisation des Nations Unies (ONU) et ses agences au Liban (UNRWA, UNICEF)",
+                    "La liberté de formation des partis politiques et des associations"
+                ]
+            },
+            "Cycle Secondaire": {
+                "Seconde (Sec 1)": [
+                    "La notion d'État de droit et de souveraineté",
+                    "La société civile libanaise et son rôle face aux crises",
+                    "La décentralisation administrative vs la centralisation",
+                    "Les libertés publiques et privées garanties par la loi",
+                    "Les mécanismes de résolution des conflits dans la société"
+                ],
+                "Première (Sec 2)": [
+                    "Comparaison des régimes politiques dans le monde",
+                    "La justice sociale, l'équité et la lutte contre la pauvreté",
+                    "Le rôle du quatrième pouvoir (médias) dans une démocratie",
+                    "La mondialisation : impacts sur la culture et l'identité nationale",
+                    "Le Droit International Humanitaire (Conventions de Genève)"
+                ],
+                "Terminale (Bac)": [
+                    "La Constitution libanaise : analyse historique et articles fondamentaux",
+                    "Le Pacte National de 1943 et l'Accord de Taëf (1989)",
+                    "Les défis modernes de la citoyenneté libanaise",
+                    "L'évolution des droits de la femme dans la législation libanaise",
+                    "L'engagement politique et la participation des jeunes au Liban"
+                ]
+            }
+        };
+
+        // --- DICTIONNAIRE DES DESCRIPTIONS D'IA ---
+        const descriptions = {
+            "formatType": {
+                "scene": "Idéal pour lancer un débat en classe sur un comportement citoyen (ex: respect, pollution, scène de vote).",
+                "infographic": "Génère un visuel structuré type poster pour expliquer des droits, des devoirs ou des règles.",
+                "diagram": "Parfait pour illustrer visuellement la séparation des pouvoirs ou la structure du gouvernement."
+            }
+        };
+
+        // --- ELEMENTS DU DOM ---
+        const cycleSelect = document.getElementById('cycleSelect');
+        const classSelect = document.getElementById('classSelect');
+        const topicSelect = document.getElementById('topicSelect');
+        const freeTopicContainer = document.getElementById('freeTopicContainer');
+        const freeTopicInput = document.getElementById('freeTopicInput');
+        
+        const formatTypeRadios = document.getElementsByName('formatType');
+        const textSelect = document.getElementById('textSelect');
+        const styleSelect = document.getElementById('styleSelect');
+        const ratioSelect = document.getElementById('ratioSelect');
+        
+        const infoFormatType = document.getElementById('infoFormatType');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultPrompt = document.getElementById('resultPrompt');
+
+        // --- INITIALISATION DES FILTRES ---
+        for (let cycle in curriculum) {
+            let option = document.createElement('option');
+            option.value = cycle;
+            option.textContent = cycle;
+            cycleSelect.appendChild(option);
+        }
+
+        cycleSelect.addEventListener('change', function() {
+            classSelect.innerHTML = '<option value="">Sélectionnez une classe...</option>';
+            topicSelect.innerHTML = '<option value="">Sélectionnez d\'abord une classe...</option>';
+            classSelect.disabled = true;
+            topicSelect.disabled = true;
+            freeTopicContainer.style.display = 'none';
+
+            if (this.value) {
+                const classes = curriculum[this.value];
+                for (let cls in classes) {
+                    let option = document.createElement('option');
+                    option.value = cls;
+                    option.textContent = cls;
+                    classSelect.appendChild(option);
+                }
+                classSelect.disabled = false;
+            }
+        });
+
+        classSelect.addEventListener('change', function() {
+            topicSelect.innerHTML = '<option value="">Sélectionnez une leçon...</option>';
+            topicSelect.disabled = true;
+            freeTopicContainer.style.display = 'none';
+
+            if (this.value) {
+                const topics = curriculum[cycleSelect.value][this.value];
+                topics.forEach(topic => {
+                    let option = document.createElement('option');
+                    option.value = topic;
+                    option.textContent = topic;
+                    topicSelect.appendChild(option);
+                });
+                
+                let freeOption = document.createElement('option');
+                freeOption.value = "libre";
+                freeOption.textContent = "--> Autre (Thème libre) <--";
+                topicSelect.appendChild(freeOption);
+
+                topicSelect.disabled = false;
+            }
+        });
+
+        topicSelect.addEventListener('change', function() {
+            if (this.value === "libre") {
+                freeTopicContainer.style.display = 'block';
+            } else {
+                freeTopicContainer.style.display = 'none';
+            }
+        });
+
+        // --- GESTION DES INTERACTIVITÉS ---
+        formatTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                infoFormatType.textContent = descriptions.formatType[this.value];
+            });
+        });
+
+        // --- GENERATION DU PROMPT ---
+        generateBtn.addEventListener('click', function() {
+            if (!cycleSelect.value || !classSelect.value || !topicSelect.value) {
+                alert("Veuillez sélectionner le cycle, la classe et le sujet du curriculum.");
+                return;
+            }
+
+            let sujetFinal = topicSelect.value;
+            if (sujetFinal === "libre") {
+                if (!freeTopicInput.value.trim()) {
+                    alert("Veuillez saisir votre thème libre.");
+                    return;
+                }
+                sujetFinal = freeTopicInput.value.trim();
+            }
+
+            // Récupération des valeurs
+            const formatType = document.querySelector('input[name="formatType"]:checked').value;
+            const hasText = textSelect.value === 'annotated';
+            const style = styleSelect.value;
+            const ratio = ratioSelect.value;
+
+            let formatLabel = "";
+            if(formatType === "scene") formatLabel = "Scène illustrant une situation de la vie quotidienne ou un concept";
+            if(formatType === "infographic") formatLabel = "Affiche de sensibilisation éducative / Infographie";
+            if(formatType === "diagram") formatLabel = "Schéma institutionnel conceptuel";
+
+            // Construction du Prompt
+            let prompt = `Agis comme un expert en création de supports pédagogiques pour les cours d'Éducation Civique (IA Nanobanan).\n\n`;
+            prompt += `Ta tâche est de générer une image éducative adaptée au curriculum libanais pour des élèves (Niveau : ${classSelect.value}).\n\n`;
+            
+            prompt += `**SUJET ET CONTENU :**\n`;
+            prompt += `Type de document : ${formatLabel}\n`;
+            prompt += `Sujet précis à illustrer : "${sujetFinal}".\n`;
+            prompt += `Assure-toi que l'image reflète la société libanaise de manière respectueuse et inclusive (diversité, éléments culturels discrets si pertinent).\n\n`;
+
+            prompt += `**PARAMÈTRES VISUELS :**\n`;
+            prompt += `- Style graphique : ${style}.\n`;
+            prompt += `- Format d'image (Ratio) : --ar ${ratio.replace(':', ':')}\n\n`;
+
+            prompt += `**CONTRAINTES TEXTUELLES STRICTES :**\n`;
+            if (hasText) {
+                prompt += `L'image DOIT inclure des mots, des titres ou des bulles de dialogue pertinents par rapport au sujet.\n`;
+                prompt += `!!! RÈGLE ABSOLUE !!! : Tout texte apparaissant dans l'image doit être rédigé EXCLUSIVEMENT en Arabe Fous7a (اللغة العربية الفصحى) parfait. La typographie doit être claire, sans erreurs orthographiques, sans lettres disjointes et écrite correctement de droite à gauche. Aucune langue étrangère n'est autorisée sur l'image.\n`;
+            } else {
+                prompt += `Cette image est destinée à être analysée et interprétée par les élèves sans aide textuelle.\n`;
+                prompt += `!!! RÈGLE ABSOLUE !!! : L'image doit être 100% MUETTE. Il ne doit y avoir AUCUNE lettre, AUCUN mot, AUCUN chiffre, ni dans des bulles, ni sur des panneaux, ni en arrière-plan.\n`;
+            }
+
+            resultPrompt.value = prompt;
+        });
+
+        // --- FONCTION DE COPIE ---
+        function copyPrompt() {
+            if (!resultPrompt.value) {
+                alert("Générez d'abord un prompt !");
+                return;
+            }
+            resultPrompt.select();
+            document.execCommand("copy");
+            alert("Prompt d'Éducation Civique copié ! Vous pouvez le coller dans l'interface de Nanobanan.");
+        }
+    </script>
+</body>
+</html>

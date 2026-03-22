@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Gems - Maîtrise de l'Oral (BO)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#10b981',
+                        dark: '#1e293b',
+                        light: '#f8fafc'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Style pour l'élément de copie invisible */
+        #copyBuffer { position: absolute; left: -9999px; top: 0; opacity: 0; }
+        /* Masquer la scrollbar pour les onglets */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Élément invisible pour la copie de secours -->
+    <textarea id="copyBuffer"></textarea>
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm z-10 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-primary text-white p-2 rounded-lg">
+                    <i class="fa-solid fa-microphone-lines text-xl"></i>
+                </div>
+                <h1 class="font-bold text-xl text-dark">Générateur de Gems IA - <span class="text-primary">Oral BO</span> <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full ml-2 align-middle">v2</span></h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSettings()" class="text-slate-500 hover:text-primary transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-gear"></i> Paramètres
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <main class="flex-1 max-w-7xl mx-auto w-full flex overflow-hidden p-4 sm:p-6 gap-6">
+        
+        <!-- Sidebar: Configuration -->
+        <aside class="w-full sm:w-80 flex flex-col gap-4 overflow-y-auto pr-2 pb-20 sm:pb-0">
+            <div class="glass-panel p-5 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="font-semibold text-lg mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-filter text-primary"></i> Filtres de Classe
+                </h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Cycle / Niveau</label>
+                    <select id="cycleSelect" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" onchange="updateClasses()">
+                        <option value="1">Cycle 1 (Maternelle)</option>
+                        <option value="2">Cycle 2 (Apprentissages fondamentaux)</option>
+                        <option value="3">Cycle 3 (Consolidation)</option>
+                        <option value="4">Cycle 4 (Approfondissements)</option>
+                        <option value="5">Lycée (Voies Générale/Techno)</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Classe</label>
+                    <select id="classSelect" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" onchange="updateSkillsPreview()">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-xl shadow-sm border border-slate-200 flex-1">
+                <h3 class="font-semibold text-sm text-slate-500 uppercase tracking-wider mb-3">Attendus du BO</h3>
+                <div id="skillsPreview" class="text-sm text-slate-600 bg-blue-50/50 p-4 rounded-lg border border-blue-100 leading-relaxed">
+                    <!-- Skills will be displayed here -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <section class="flex-1 flex flex-col gap-4 overflow-y-auto pb-20 sm:pb-0 relative">
+            
+            <!-- Assistants Grid -->
+            <div id="assistantsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 fade-in">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Free Theme Setup Panel -->
+            <div id="freeThemePanel" class="hidden glass-panel p-6 rounded-xl shadow-sm border border-slate-200 fade-in">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h2 class="text-2xl font-bold text-dark flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-purple-500"></i> Créateur Libre</h2>
+                    <button onclick="showGrid()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-arrow-left"></i> Retour à l'accueil
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Thème / Sujet de discussion</label>
+                        <input type="text" id="freeThemeInput" placeholder="Ex: L'Égypte Antique" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Rôle de l'IA</label>
+                        <input type="text" id="freeRoleInput" placeholder="Ex: Un pharaon amical" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                </div>
+                <button onclick="generateFreeTheme()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors shadow-sm w-full md:w-auto">
+                    Générer les variantes
+                </button>
+            </div>
+
+            <!-- Generator Output Panel -->
+            <div id="outputPanel" class="hidden glass-panel flex-1 rounded-xl shadow-sm border border-slate-200 flex flex-col overflow-hidden fade-in">
+                <div class="bg-slate-50 p-4 sm:px-6 border-b border-slate-200 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+                    <div>
+                        <h2 id="outputTitle" class="text-xl font-bold text-dark">Titre Assistant</h2>
+                        <p id="outputClass" class="text-sm text-primary font-medium">Classe</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 w-full xl:w-auto">
+                        <button onclick="showGrid()" class="flex-1 sm:flex-none bg-slate-100 border border-slate-300 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex justify-center items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-arrow-left"></i> Retour
+                        </button>
+                        <button onclick="copyCurrentPrompt()" class="flex-1 sm:flex-none bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex justify-center items-center gap-2 shadow-sm">
+                            <i class="fa-regular fa-copy"></i> Copier
+                        </button>
+                        <button onclick="downloadPrompt()" class="flex-1 sm:flex-none bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex justify-center items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-download"></i> Enregistrer (.txt)
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-0 flex-1 overflow-hidden flex flex-col">
+                    <div class="flex border-b border-slate-200 overflow-x-auto hide-scrollbar" id="variantTabs">
+                        <!-- Tabs populated by JS -->
+                    </div>
+                    <div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-white relative" id="promptContent">
+                        <!-- Content populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 fade-in">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-sliders text-primary"></i> Paramètres Généraux</h3>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-slate-700 mb-2">Langue de la configuration générée (Output)</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="setLanguage('fr')" id="lang-fr" class="border-2 border-primary bg-blue-50 text-primary py-2 rounded-lg font-medium transition-all">Français</button>
+                    <button onclick="setLanguage('en')" id="lang-en" class="border border-slate-200 text-slate-600 hover:bg-slate-50 py-2 rounded-lg font-medium transition-all">English</button>
+                </div>
+                <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-circle-info"></i> Détermine la langue dans laquelle les instructions (Système Prompt) seront rédigées pour l'IA.</p>
+            </div>
+            
+            <button onclick="toggleSettings()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-lg font-medium transition-colors">
+                Fermer
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-green-400"></i>
+        <span id="toastMsg">Action effectuée</span>
+    </div>
+
+    <script>
+        // --- DATA STRUCTURE (Based on PDF BO Analysis & High School Additions) ---
+        const cycleData = {
+            "1": [
+                { id: "PS", name: "Petite Section (3-4 ans)", skills: "Entrée dans la communication, phrases simples, expression des besoins, écoute d'histoires courtes, scansion du prénom, vocabulaire lié à l'action immédiate." },
+                { id: "MS", name: "Moyenne Section (4-5 ans)", skills: "Acquisition de 1500 mots, récits centrés sur ses propres activités, utilisation des pronoms/genre/nombre/négation, manipulation des syllabes orales." },
+                { id: "GS", name: "Grande Section (5-6 ans)", skills: "Raconter seul un récit étudié, respect de la trame narrative, attente du tour de parole, articulation des 36 phonèmes, dictée à l'adulte ajustée, posture d'auditeur." }
+            ],
+            "2": [
+                { id: "CP", name: "Cours Préparatoire", skills: "Lien oral/écrit, attention soutenue sur textes longs, reformulation de l'essentiel, production d'énoncés clairs en tenant compte de l'interlocuteur." },
+                { id: "CE1", name: "Cours Élémentaire 1", skills: "Aisance oratoire, adaptation du débit/volume/posture, utilisation de connecteurs temporels et logiques, lecture à voix haute expressive (90 mots/min)." },
+                { id: "CE2", name: "Cours Élémentaire 2", skills: "Échanges autonomes, respect des règles conversationnelles, courtes présentations structurées avec support de notes, autocritique et correction post-enregistrement." }
+            ],
+            "3": [
+                { id: "CM1", name: "Cours Moyen 1", skills: "Identification d'informations essentielles (qui/quoi/où/quand), réalisation d'exposé court (5 min) sur notes, participation aux débats citoyens, mémorisation des enchaînements logiques." },
+                { id: "CM2", name: "Cours Moyen 2", skills: "Exposé avec support numérique (diaporama), maintien du contact visuel avec l'auditoire, utilisation d'un lexique de précision." },
+                { id: "6eme", name: "6ème", skills: "Reformulation de propos complexes, maîtrise de la prosodie (ton, rythme, accentuation) pour interprétation poétique, animation et arbitrage de débats (faits vs opinions)." }
+            ],
+            "4": [
+                { id: "5eme", name: "5ème", skills: "Identification des visées d'un discours complexe, expression claire via syntaxe simple, compte rendu de recherche, récitation avec gestion du souffle." },
+                { id: "4eme", name: "4ème", skills: "Expression de sensations/sentiments (art), donner un avis argumenté (5 min), assumer des rôles en débat (animateur, rapporteur), distinction des niveaux de langue." },
+                { id: "3eme", name: "3ème", skills: "Maîtrise de l'exposé long (10 min sans notes - DNB), identification de l'implicite (ironie, sous-entendus), distribution équitable de la parole en débat, niveau de langue soutenu." }
+            ],
+            "5": [
+                { id: "2nde", name: "Seconde", skills: "Prise de parole en continu, argumentation structurée, participation active et courtoise aux débats, maîtrise des registres de langue, préparation aux épreuves orales et aisance oratoire." },
+                { id: "1ere", name: "Première", skills: "Préparation à l'Épreuve Anticipée de Français (EAF) : lecture expressive, analyse littéraire à l'oral, entretien (8 minutes) et justification d'un choix de lecture." },
+                { id: "Term", name: "Terminale", skills: "Préparation au Grand Oral : présentation d'une question adossée aux spécialités (5 min), interaction et argumentation avec un jury (10 min), échange sur le projet d'orientation (5 min), maîtrise de la communication non verbale." }
+            ]
+        };
+
+        const assistants = [
+            {
+                id: "vocab",
+                title: "L'Explorateur de Mots",
+                desc: "Axé sur l'enrichissement lexical, la reformulation et l'évocation.",
+                icon: "fa-book-open",
+                color: "text-blue-500",
+                bg: "bg-blue-50",
+                variants: ["Le Marché des Saveurs", "Le Biologiste Curieux", "Les Métiers de la Ville", "L'Émotion du Jour", "La Boîte à Mystères"]
+            },
+            {
+                id: "narrator",
+                title: "Le Conteur Narratif",
+                desc: "Développe la capacité à raconter, décrire, et ordonner chronologiquement.",
+                icon: "fa-masks-theater",
+                color: "text-orange-500",
+                bg: "bg-orange-50",
+                variants: ["L'Aventure Spatiale", "Le Conte de Fées Inversé", "Le Reportage Événement", "L'Enquêteur Logique", "Le Voyageur Temporel"]
+            },
+            {
+                id: "debater",
+                title: "L'Animateur de Débat",
+                desc: "Conçu pour l'argumentation, l'écoute active et le respect des règles d'échange.",
+                icon: "fa-comments",
+                color: "text-green-500",
+                bg: "bg-green-50",
+                variants: ["Le Conseil Écologique", "Dilemme Technologique", "Tribunal Historique", "Débat sur l'Uniforme", "Le Médiateur Scientifique"]
+            },
+            {
+                id: "presenter",
+                title: "L'Expert Exposé / Grand Oral",
+                desc: "Entraînement à la prise de parole longue, structurée et détachée des notes (DNB, EAF, Grand Oral).",
+                icon: "fa-person-chalkboard",
+                color: "text-indigo-500",
+                bg: "bg-indigo-50",
+                variants: ["Soutenance de Projet", "Critique Littéraire / Art", "Jury du Grand Oral", "Vulgarisation Scientifique", "Plaidoyer Citoyen"]
+            },
+            {
+                id: "implicit",
+                title: "Le Maître de l'Implicite",
+                desc: "Travail sur les sous-entendus, l'ironie, la prosodie et la distance critique.",
+                icon: "fa-brain",
+                color: "text-rose-500",
+                bg: "bg-rose-50",
+                variants: ["Le Décodeur de Publicités", "Le Poète Mystérieux", "L'Analyste Satirique", "Le Jeu des Fausses Nouvelles", "Interview Contradictoire"]
+            },
+            {
+                id: "free",
+                title: "Création Libre",
+                desc: "Définissez votre propre thème et rôle pour l'IA selon les besoins spécifiques de vos élèves.",
+                icon: "fa-wand-magic-sparkles",
+                color: "text-purple-500",
+                bg: "bg-purple-50",
+                isCustom: true
+            }
+        ];
+
+        // --- STATE VARIABLES ---
+        let currentLang = 'fr';
+        let generatedData = null;
+        let currentVariantIndex = 0;
+
+        // --- UI INITIALIZATION ---
+        function init() {
+            renderAssistantsGrid();
+            updateClasses();
+        }
+
+        function renderAssistantsGrid() {
+            const grid = document.getElementById('assistantsGrid');
+            grid.innerHTML = '';
+            
+            assistants.forEach(ast => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all cursor-pointer group flex flex-col items-start";
+                card.onclick = () => selectAssistant(ast);
+                card.innerHTML = `
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${ast.bg} ${ast.color} group-hover:scale-110 transition-transform">
+                        <i class="fa-solid ${ast.icon} text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-800 mb-2">${ast.title}</h3>
+                    <p class="text-sm text-slate-500 leading-relaxed">${ast.desc}</p>
+                    <div class="mt-4 pt-4 border-t border-slate-100 w-full flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span class="text-xs font-semibold text-primary">Créer le Gem <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function updateClasses() {
+            const cycleId = document.getElementById('cycleSelect').value;
+            const classSelect = document.getElementById('classSelect');
+            classSelect.innerHTML = '';
+            
+            cycleData[cycleId].forEach(cls => {
+                const opt = document.createElement('option');
+                opt.value = cls.id;
+                opt.textContent = cls.name;
+                classSelect.appendChild(opt);
+            });
+            updateSkillsPreview();
+        }
+
+        function updateSkillsPreview() {
+            const cycleId = document.getElementById('cycleSelect').value;
+            const classId = document.getElementById('classSelect').value;
+            const cls = cycleData[cycleId].find(c => c.id === classId);
+            
+            document.getElementById('skillsPreview').innerHTML = `
+                <strong>Attendus ${cls.name}:</strong><br/>
+                ${cls.skills}
+            `;
+        }
+
+        // --- GENERATION LOGIC ---
+        function selectAssistant(assistant) {
+            if (assistant.isCustom) {
+                document.getElementById('assistantsGrid').classList.add('hidden');
+                document.getElementById('outputPanel').classList.add('hidden');
+                document.getElementById('freeThemePanel').classList.remove('hidden');
+                return;
+            }
+            
+            generatePromptData(assistant, null);
+        }
+
+        function generateFreeTheme() {
+            const theme = document.getElementById('freeThemeInput').value.trim() || "Thème Général";
+            const role = document.getElementById('freeRoleInput').value.trim() || "Guide Pédagogique";
+            
+            const customAssistant = {
+                title: "Assistant Sur-Mesure",
+                desc: `Thème: ${theme} | Rôle: ${role}`,
+                variants: [
+                    "Interview découverte",
+                    "Résolution de problème",
+                    "Jeu de devinettes",
+                    "Débat contradictoire",
+                    "Création d'histoire collaborative"
+                ]
+            };
+            
+            generatePromptData(customAssistant, {theme, role});
+            document.getElementById('freeThemePanel').classList.add('hidden');
+        }
+
+        function generatePromptData(assistant, customData) {
+            const cycleId = document.getElementById('cycleSelect').value;
+            const classId = document.getElementById('classSelect').value;
+            const cls = cycleData[cycleId].find(c => c.id === classId);
+            
+            generatedData = {
+                assistantTitle: assistant.title,
+                className: cls.name,
+                skills: cls.skills,
+                variants: []
+            };
+
+            const isEn = currentLang === 'en';
+            
+            assistant.variants.forEach((vTitle, index) => {
+                let roleStr = isEn ? "Your Role:" : "Ton Rôle:";
+                let targetStr = isEn ? "Target Audience:" : "Public Cible:";
+                let objectiveStr = isEn ? "Pedagogical Objective (French Official BO):" : "Objectif Pédagogique (BO):";
+                let rulesStr = isEn ? "Instructions & Behavior:" : "Instructions et Comportement:";
+                
+                let rulesList = isEn ? 
+                    `- Ask only ONE question at a time.\n- Adapt your vocabulary to the level of ${cls.name}.\n- Encourage the student to formulate full sentences.\n- Correct oral mistakes benevolently without stopping the flow.\n- Foster active participation and wait for their response.` :
+                    `- Pose UNE SEULE question à la fois.\n- Adapte ton vocabulaire au niveau des élèves de ${cls.name}.\n- Encourage l'élève à formuler des phrases complètes.\n- Reprends et reformule les erreurs avec bienveillance sans bloquer l'échange.\n- Favorise la participation active et attends toujours la réponse.`;
+
+                let specificMission = "";
+                if(customData) {
+                    specificMission = isEn ? `Act as ${customData.role} discussing ${customData.theme}. Scenario: ${vTitle}` : `Agis comme ${customData.role} pour discuter de ${customData.theme}. Scénario: ${vTitle}`;
+                } else {
+                    specificMission = isEn ? `Engage the student on the theme of '${vTitle}'. Focus heavily on their oral skills.` : `Engage l'élève sur le thème '${vTitle}'. Mets l'accent sur sa production orale.`;
+                }
+
+                const promptText = `**${isEn ? 'Title' : 'Titre'}** : Gem - ${cls.name} - ${assistant.title} (${vTitle})
+**${isEn ? 'Description' : 'Descriptif'}** : ${assistant.desc}
+
+--- SYSTEM PROMPT (Instructions pour configurer le Gem) ---
+
+${roleStr} Tu es une intelligence artificielle spécialisée dans la pédagogie de l'oral. ${specificMission}
+${targetStr} Élève(s) de ${cls.name} (Système éducatif français).
+${objectiveStr} Tu dois travailler les compétences suivantes : ${cls.skills}
+
+${rulesStr}
+${rulesList}
+
+${isEn ? 'First message (Starter):' : 'Message de bienvenue (Amorce) :'}
+"Bonjour ! Je suis ravi(e) de discuter avec toi aujourd'hui. Es-tu prêt(e) à commencer notre échange ?"
+`;
+                generatedData.variants.push({
+                    tabTitle: vTitle, // Remplace "Variante X" par le titre du Gem
+                    content: promptText
+                });
+            });
+
+            currentVariantIndex = 0;
+            displayOutput();
+        }
+
+        function displayOutput() {
+            document.getElementById('assistantsGrid').classList.add('hidden');
+            document.getElementById('freeThemePanel').classList.add('hidden');
+            const outputPanel = document.getElementById('outputPanel');
+            outputPanel.classList.remove('hidden');
+
+            document.getElementById('outputTitle').textContent = generatedData.assistantTitle;
+            document.getElementById('outputClass').textContent = generatedData.className;
+
+            renderTabs();
+            renderPromptContent();
+        }
+
+        function renderTabs() {
+            const tabsContainer = document.getElementById('variantTabs');
+            tabsContainer.innerHTML = '';
+            
+            generatedData.variants.forEach((v, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${idx === currentVariantIndex ? 'tab-active' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`;
+                btn.textContent = v.tabTitle;
+                btn.onclick = () => {
+                    currentVariantIndex = idx;
+                    renderTabs();
+                    renderPromptContent();
+                };
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        function renderPromptContent() {
+            const container = document.getElementById('promptContent');
+            const content = generatedData.variants[currentVariantIndex].content;
+            
+            // Basic Markdown rendering for display
+            const htmlContent = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br/>')
+                .replace(/--- SYSTEM PROMPT(.*?)---/g, '<div class="bg-slate-800 text-blue-300 px-3 py-1 inline-block rounded font-mono text-xs mb-3 mt-4">SYSTEM PROMPT$1</div>');
+
+            container.innerHTML = `
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 font-mono text-sm text-slate-700 whitespace-pre-wrap relative shadow-inner">
+                    <button onclick="copyCurrentPrompt()" class="absolute top-3 right-3 text-slate-400 hover:text-primary bg-white border border-slate-200 p-2 rounded shadow-sm transition-colors" title="Copier ce prompt">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                    ${htmlContent}
+                </div>
+            `;
+        }
+
+        function showGrid() {
+            document.getElementById('outputPanel').classList.add('hidden');
+            document.getElementById('freeThemePanel').classList.add('hidden');
+            document.getElementById('assistantsGrid').classList.remove('hidden');
+        }
+
+        // --- UTILS & SETTINGS ---
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            if(lang === 'fr') {
+                document.getElementById('lang-fr').className = "border-2 border-primary bg-blue-50 text-primary py-2 rounded-lg font-medium transition-all";
+                document.getElementById('lang-en').className = "border border-slate-200 text-slate-600 hover:bg-slate-50 py-2 rounded-lg font-medium transition-all";
+            } else {
+                document.getElementById('lang-en').className = "border-2 border-primary bg-blue-50 text-primary py-2 rounded-lg font-medium transition-all";
+                document.getElementById('lang-fr').className = "border border-slate-200 text-slate-600 hover:bg-slate-50 py-2 rounded-lg font-medium transition-all";
+            }
+            showToast(lang === 'fr' ? "Langue changée (Français)" : "Language updated (English)");
+            
+            // Regenerate if a prompt is active
+            if(generatedData && !document.getElementById('outputPanel').classList.contains('hidden')) {
+                showGrid();
+            }
+        }
+
+        /**
+         * Version robuste de la copie vers le presse-papier utilisant document.execCommand('copy')
+         * car navigator.clipboard.writeText peut être bloqué par les politiques de sécurité des iframes.
+         */
+        function copyCurrentPrompt() {
+            if(!generatedData) return;
+            const textToCopy = generatedData.variants[currentVariantIndex].content;
+            
+            const buffer = document.getElementById('copyBuffer');
+            buffer.value = textToCopy;
+            buffer.select();
+            buffer.setSelectionRange(0, 99999); // Pour mobiles
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast(currentLang === 'fr' ? "Configuration copiée dans le presse-papier !" : "Configuration copied to clipboard!");
+                } else {
+                    throw new Error('ExecCommand copy failed');
+                }
+            } catch (err) {
+                console.error('Erreur lors de la copie :', err);
+                showToast(currentLang === 'fr' ? "Erreur lors de la copie automatique." : "Error during automatic copy.");
+            }
+        }
+
+        function downloadPrompt() {
+            if(!generatedData) return;
+            const textToSave = generatedData.variants[currentVariantIndex].content;
+            const fileName = `Gem_Oral_${generatedData.className.replace(/\s+/g, '_')}_Var${currentVariantIndex+1}.txt`;
+            
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(textToSave));
+            element.setAttribute('download', fileName);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            showToast(currentLang === 'fr' ? "Fichier TXT téléchargé !" : "TXT file downloaded!");
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>

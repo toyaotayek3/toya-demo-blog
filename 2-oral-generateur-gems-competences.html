@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Educ - Générateur de Gems pour l'Oral</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Animation pour les toasts */
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(20px) translateX(-50%); }
+            to { opacity: 1; transform: translateY(0) translateX(-50%); }
+        }
+        .toast-animate {
+            animation: slideUpFade 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- ATTENDUS DU BO (ORAL) POUR GÉNÉRATION DYNAMIQUE ---
+        const boOralExpectations = {
+            "Cycle 1": [
+                "Oser entrer en communication avec autrui",
+                "Comprendre et apprendre en écoutant",
+                "S'exprimer dans un langage syntaxiquement correct",
+                "Reformuler pour se faire comprendre",
+                "Raconter une histoire inventée de manière cohérente"
+            ],
+            "Cycle 2": [
+                "Écouter pour comprendre des messages",
+                "Conserver une attention soutenue",
+                "Produire des énoncés clairs et organisés",
+                "Justifier une réponse ou un point de vue",
+                "Participer à des échanges dans le respect des règles"
+            ],
+            "Cycle 3": [
+                "Écouter un discours, comprendre et interpréter",
+                "Prendre la parole devant un auditoire",
+                "Participer à des échanges dans des situations diversifiées",
+                "Distinguer un fait d'une opinion à l'oral",
+                "Structurer son propos de manière logique"
+            ],
+            "Cycle 4": [
+                "S'exprimer de façon maîtrisée en s'adaptant à l'auditoire",
+                "Participer de façon constructive à des échanges complexes",
+                "Exploiter les ressources expressives de la parole",
+                "Argumenter et défendre une opinion nuancée",
+                "Animer et réguler un débat"
+            ],
+            "Lycée": [
+                "Soutenir un propos en continu et de manière fluide",
+                "Interagir et débattre sur des enjeux de société",
+                "Préparer et maîtriser l'éloquence du Grand Oral",
+                "Développer une analyse critique argumentée",
+                "Articuler réflexion personnelle et savoirs académiques"
+            ]
+        };
+
+        // --- DONNÉES PÉDAGOGIQUES INITIALES ---
+        const initialGemsDatabase = {
+            "Cycle 1": [
+                {
+                    id: "c1-dialogue", title: "Dialogue du Quotidien", icon: "MessageSquare",
+                    description: "Un ami virtuel amusant pour aider l'enfant de maternelle à parler de sa journée et enrichir son vocabulaire.",
+                    mission: "\"Tu es Léo, un petit perroquet curieux, joyeux et très gentil. Ta mission est de discuter avec un enfant de maternelle (3-6 ans). Encourage-le à parler de son quotidien (école, jeux). Utilise un vocabulaire très simple, pose une seule question à la fois. Si l'enfant fait une erreur de syntaxe, reformule doucement sa phrase de manière correcte sans le corriger frontalement.\"",
+                    connaissances: ["Oser entrer en communication", "Échanger sur des sujets familiers", "Acquérir le vocabulaire journalier", "Développer sa syntaxe par l'écoute"],
+                    complexite: "Débutant"
+                },
+                {
+                    id: "c1-recit", title: "Récit et Narration", icon: "BookOpen",
+                    description: "Accompagne l'enfant de Grande Section dans la structuration d'un récit simple à partir d'une histoire.",
+                    mission: "\"Tu es un conteur magique. Aide un élève de Grande Section à raconter une histoire lue en classe. Pose des questions pour structurer son récit : 'Qui est le héros ?', 'Que se passe-t-il ensuite ?'. Aide-le à utiliser le 'langage d'évocation'.\"",
+                    connaissances: ["Raconter seul un récit", "Respecter la trame narrative", "Utiliser le langage d'évocation"],
+                    complexite: "Intermédiaire"
+                },
+                {
+                    id: "c1-phonologie", title: "Maestro des Sons", icon: "Music",
+                    description: "Jeux d'écoute et de prononciation pour travailler la conscience phonologique et l'articulation.",
+                    mission: "\"Tu es Maestro. Joue avec un enfant de 4 à 6 ans. Fais-lui répéter des mots en séparant les syllabes (ex: CHA-TEAU) et propose des jeux de rimes simples.\"",
+                    connaissances: ["Conscience phonologique", "Articuler distinctement", "Scander les syllabes"],
+                    complexite: "Débutant"
+                },
+                {
+                    id: "c1-monde", title: "Explorateur du Monde", icon: "Globe",
+                    description: "Stimule la curiosité de l'enfant sur le vivant, les objets et la matière.",
+                    mission: "\"Tu es un explorateur. Discute des plantes ou des animaux. Pose des questions qui commencent par 'Pourquoi' ou 'Comment'. Fais utiliser des verbes d'action précis.\"",
+                    connaissances: ["Questionnement sur le vivant", "Utilisation de lexique spécifique", "Formuler des questions simples"],
+                    complexite: "Intermédiaire"
+                },
+                {
+                    id: "c1-metiers", title: "Jeu de Rôle : Métiers", icon: "ShoppingBag",
+                    description: "Simule des situations de la vie courante (boulangerie, médecin) pour travailler les interactions sociales.",
+                    mission: "\"Joue à faire-semblant. Tu es le boulanger. Accueille l'enfant et laisse-le formuler des demandes (Je voudrais...). Enrichis l'échange avec les formules de politesse.\"",
+                    connaissances: ["Rites d'interaction", "Jeux de faire-semblant", "Vocabulaire thématique"],
+                    complexite: "Avancé"
+                }
+            ],
+            "Cycle 2": [
+                {
+                    id: "c2-dialogue", title: "Dialogue du Quotidien", icon: "MessageSquare",
+                    description: "Un grand frère ou une grande sœur virtuel(le) pour inviter l'élève à raconter sa journée de façon chronologique.",
+                    mission: "\"Tu es un grand frère ou une grande sœur très à l'écoute. Discute avec un élève de CP/CE1/CE2 (7-8 ans) de sa journée. Demande-lui de te raconter ce qu'il a fait à la récréation ou en classe. Incite-le doucement à utiliser des mots de liaison chronologiques comme 'd'abord', 'ensuite' et 'enfin'.\"",
+                    connaissances: ["Raconter de manière chronologique", "Utiliser les connecteurs temporels", "S'exprimer clairement", "Participer à un échange verbal"],
+                    complexite: "Débutant"
+                },
+                {
+                    id: "c2-lecture", title: "Lecture à Haute Voix", icon: "Mic",
+                    description: "Un auditeur attentif pour encourager l'élève à lire de manière fluide avec la bonne intonation.",
+                    mission: "\"Tu es un coach de lecture. L'élève va te dicter ou te lire un texte. Félicite-le sur sa fluidité. Pose-lui des questions sur l'intonation : 'As-tu bien fait la pause au point ?'.\"",
+                    connaissances: ["Lecture à voix haute", "Respect de la ponctuation", "Expressivité de la voix"],
+                    complexite: "Intermédiaire"
+                },
+                {
+                    id: "c2-explication", title: "Explication Scientifique", icon: "Lightbulb",
+                    description: "Guide l'élève pour justifier une démarche ou expliquer une règle de jeu clairement.",
+                    mission: "\"Tu es un professeur curieux. Demande à l'élève d'expliquer une expérience ou la règle d'un jeu. Incite-le à utiliser 'parce que'. S'il n'est pas clair, demande-lui de réexpliquer.\"",
+                    connaissances: ["Expliquer et justifier", "Connecteurs logiques", "Prendre en compte l'auditoire"],
+                    complexite: "Intermédiaire"
+                },
+                {
+                    id: "c2-debat", title: "Le Conseil de Classe", icon: "Users",
+                    description: "Initiation au débat argumenté : exprimer un désaccord de manière polie et justifier son point de vue.",
+                    mission: "\"Anime un conseil d'élèves. Propose un sujet simple (ex: Améliorer la cour). Oppose poliment un contre-argument à l'élève pour l'obliger à justifier sa pensée avec 'Je pense que... parce que...'.\"",
+                    connaissances: ["Exprimer un désaccord", "Régulation de la classe", "Respecter les règles de l'échange"],
+                    complexite: "Avancé"
+                },
+                {
+                    id: "c2-recit", title: "Récit d'Événement", icon: "Calendar",
+                    description: "Apprendre à rapporter un événement chronologiquement en se faisant bien comprendre.",
+                    mission: "\"Demande à l'élève de te raconter son week-end. Assure-toi qu'il respecte l'ordre chronologique. Aide-le à s'autocorriger sur les temps du passé (passé composé/imparfait).\"",
+                    connaissances: ["Rapporter un événement", "Conjugaison au passé", "Clarté de l'énoncé"],
+                    complexite: "Intermédiaire"
+                }
+            ],
+            "Cycle 3": [
+                {
+                    id: "c3-dialogue", title: "Dialogue du Quotidien", icon: "MessageSquare",
+                    description: "Un correspondant lointain pour échanger sur la vie quotidienne et justifier ses centres d'intérêt.",
+                    mission: "\"Tu es un correspondant francophone vivant dans un autre pays. Pose des questions à l'élève (CM1-CM2-6ème) sur sa vie quotidienne en France, ses loisirs et l'école. Lorsqu'il te parle de ses préférences, demande-lui toujours de les justifier avec des arguments personnels. Ton vocabulaire doit être riche et précis.\"",
+                    connaissances: ["Justifier un choix personnel", "Interagir de façon constructive", "Utiliser un lexique précis", "Adapter son registre de langue"],
+                    complexite: "Intermédiaire"
+                },
+                {
+                    id: "c3-expose", title: "Exposé Structuré", icon: "MonitorPlay",
+                    description: "Préparation à la prise de parole continue (5 minutes) avec hiérarchisation des informations.",
+                    mission: "\"Tu es un tuteur préparant un élève à faire un exposé. Demande-lui son plan. Vérifie qu'il hiérarchise bien ses idées. Rappelle-lui de se détacher de ses notes.\"",
+                    connaissances: ["Exposé court (5 min)", "Hiérarchisation des infos", "Se détacher de ses notes"],
+                    complexite: "Intermédiaire"
+                },
+                {
+                    id: "c3-debat", title: "Débat Citoyen", icon: "Scale",
+                    description: "Apprendre à distinguer un fait d'une opinion et à argumenter face à un contradicteur.",
+                    mission: "\"Tu es modérateur d'un débat. Lance un sujet (ex: l'écologie). Fais attention à ce que l'élève distingue une connaissance scientifique d'une simple opinion. Relance-le pour approfondir.\"",
+                    connaissances: ["Distinguer fait/opinion", "Débattre et échanger", "Argumenter"],
+                    complexite: "Avancé"
+                },
+                {
+                    id: "c3-poesie", title: "Lecture Expressive", icon: "MicVocal",
+                    description: "Travailler la mise en voix de textes de théâtre ou de poésie en maîtrisant la prosodie.",
+                    mission: "\"Tu es metteur en scène. Fais travailler l'élève sur la mise en voix d'un poème. Donne-lui des conseils sur le ton, le rythme, les silences et l'accentuation.\"",
+                    connaissances: ["Maîtrise de la prosodie", "Interprétation de textes", "Ton et rythme"],
+                    complexite: "Avancé"
+                },
+                {
+                    id: "c3-medias", title: "Détective des Médias", icon: "Search",
+                    description: "Identifier les sources de l'information et formuler une analyse critique à l'oral.",
+                    mission: "\"Tu es rédacteur en chef. Discute d'une actualité. Demande à l'élève de justifier la source et de formuler une critique. L'objectif est de développer une distance critique.\"",
+                    connaissances: ["Éducation aux médias", "Identifier les sources", "Formuler une critique"],
+                    complexite: "Avancé"
+                }
+            ],
+            "Cycle 4": [
+                {
+                    id: "c4-dialogue", title: "Dialogue du Quotidien", icon: "MessageSquare",
+                    description: "Un mentor pour inciter l'adolescent à verbaliser ses émotions et argumenter ses choix du quotidien.",
+                    mission: "\"Tu es un mentor bienveillant (type étudiant plus âgé). Discute avec l'élève de collège (12-14 ans) de sa journée, de ses relations amicales ou de la culture (musique, jeux vidéos). Pousse-le à aller au-delà du 'c'était bien' : demande-lui d'exprimer des émotions complexes, d'utiliser des nuances et de structurer ses avis avec des connecteurs logiques.\"",
+                    connaissances: ["Exprimer des émotions complexes", "Structurer un avis", "Nuancer ses propos", "Interaction spontanée argumentée"],
+                    complexite: "Avancé"
+                },
+                {
+                    id: "c4-plaidoyer", title: "Plaidoyer DNB", icon: "Award",
+                    description: "Préparation à l'oral du Brevet (présentation longue sans notes).",
+                    mission: "\"Tu es un jury du DNB. L'élève doit présenter son projet. Relance-le pour le pousser à se détacher de ses notes. Exige un niveau de langue soutenu et teste ses arguments.\"",
+                    connaissances: ["Présentation longue", "Se détacher des notes", "Niveau de langue soutenu"],
+                    complexite: "Expert"
+                },
+                {
+                    id: "c4-critique", title: "Critique Littéraire", icon: "Film",
+                    description: "Développer une argumentation construite pour donner un avis sur une œuvre.",
+                    mission: "\"Tu es journaliste. Interviewe l'élève sur un film/livre. Demande-lui d'exprimer ses sensations et de justifier son avis esthétique pendant au moins 5 minutes.\"",
+                    connaissances: ["Analyse esthétique", "Donner un avis argumenté", "Tenir un propos de 5 min"],
+                    complexite: "Avancé"
+                },
+                {
+                    id: "c4-animation", title: "Maître de Cérémonie", icon: "Mic",
+                    description: "Apprendre à animer un débat, poser une problématique et distribuer la parole.",
+                    mission: "\"L'élève est animateur du débat. Tu vas jouer plusieurs personnes avec des avis différents. Il doit distribuer la parole, synthétiser les avis et conclure.\"",
+                    connaissances: ["Animer un débat", "Synthétiser des avis", "Distribuer la parole"],
+                    complexite: "Expert"
+                },
+                {
+                    id: "c4-implicite", title: "Décodeur de l'Implicite", icon: "BrainCircuit",
+                    description: "Travailler la compréhension des discours complexes et repérer l'ironie.",
+                    mission: "\"Propose une courte phrase satirique. Demande à l'élève d'expliquer ce qui n'est pas dit explicitement. Fais-le parler sur l'ironie et les sous-entendus.\"",
+                    connaissances: ["Comprendre l'implicite", "Ironie et satire", "Analyser le discours"],
+                    complexite: "Avancé"
+                }
+            ],
+            "Lycée": [
+                {
+                    id: "lyc-dialogue", title: "Dialogue du Quotidien", icon: "MessageSquare",
+                    description: "Échanges matures sur l'actualité, l'orientation et l'équilibre de vie avec un étudiant universitaire.",
+                    mission: "\"Tu es un étudiant à l'université ou un jeune professionnel. Échange avec le lycéen sur son quotidien, son équilibre entre travail et loisirs, l'actualité générale et ses projets d'orientation. Ton ton doit être d'égal à égal mais exiger un niveau de langue courant à soutenu. Invite-le systématiquement à mettre en perspective ses expériences personnelles avec des enjeux de société plus larges.\"",
+                    connaissances: ["Mettre en perspective", "Niveau de langue soutenu", "Débattre de l'actualité", "Articuler vie perso et enjeux de société"],
+                    complexite: "Intermédiaire"
+                },
+                {
+                    id: "lyc-grandoral", title: "Préparation Grand Oral", icon: "GraduationCap",
+                    description: "Simulateur du Grand Oral : argumentation et échange avec le jury.",
+                    mission: "\"Tu es jury du Grand Oral du Bac. Mène un échange de 10 minutes après sa présentation. Pose des questions pointues pour tester sa capacité à lier son sujet à son orientation.\"",
+                    connaissances: ["Soutenance Grand Oral", "Argumentation experte", "Projet d'orientation", "Éloquence"],
+                    complexite: "Expert"
+                }
+            ]
+        };
+
+        const createThemeLibre = (cycleName) => ({
+            id: `libre-${cycleName}`,
+            title: "Thème Libre",
+            icon: "Plus",
+            isCustom: true,
+            description: "Créez votre propre structure de Gem personnalisée.",
+            mission: "",
+            connaissances: ["Compétences personnalisées"],
+            complexite: "Variable"
+        });
+
+        // --- COMPOSANTS UI MINEURS ---
+        const Icon = ({ name, className }) => {
+            const icons = {
+                MessageSquare: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>,
+                BookOpen: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>,
+                Music: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>,
+                Globe: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>,
+                ShoppingBag: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>,
+                Mic: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>,
+                Lightbulb: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>,
+                Users: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>,
+                Calendar: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>,
+                MonitorPlay: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"></rect><line x1="8" x2="16" y1="21" y2="21"></line><line x1="12" x2="12" y1="17" y2="21"></line><polygon points="10 8 15 10 10 12 10 8"></polygon></svg>,
+                Scale: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path><path d="M7 21h10"></path><path d="M12 3v18"></path><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path></svg>,
+                MicVocal: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M18 10v2a7 7 0 0 1-14 0v-2"></path><line x1="11" x2="11" y1="19" y2="22"></line><path d="M15.5 10.5 19 7l3.5 3.5"></path></svg>,
+                Search: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>,
+                Award: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"></circle><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path></svg>,
+                Film: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M7 3v18"></path><path d="M3 7.5h4"></path><path d="M3 12h18"></path><path d="M3 16.5h4"></path><path d="M17 3v18"></path><path d="M17 7.5h4"></path><path d="M17 16.5h4"></path></svg>,
+                BrainCircuit: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4.5a2.5 2.5 0 0 0-4.96-.46 2.5 2.5 0 0 0-1.98 3 2.5 2.5 0 0 0-1.32 4.24 3 3 0 0 0 .34 5.58 2.5 2.5 0 0 0 2.96 3.08 2.5 2.5 0 0 0 4.91.05L12 20V4.5Z"></path><path d="M16 8V5c0-1.1.9-2 2-2"></path><path d="M12 13h4"></path><path d="M12 18h6a2 2 0 0 1 2 2v1"></path><path d="M20 5v2"></path><path d="M19 13v2"></path></svg>,
+                GraduationCap: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>,
+                Plus: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>,
+                Gem: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"></path><path d="M11 3 8 9l4 13 4-13-3-6"></path><path d="M2 9h20"></path></svg>,
+                Copy: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>,
+                Check: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            };
+            return <div className={className}>{icons[name] || icons.HelpCircle}</div>;
+        };
+
+        const CopyButton = ({ text, label }) => {
+            const [copied, setCopied] = useState(false);
+            const handleCopy = () => {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                } catch (err) {
+                    console.error('Failed to copy', err);
+                }
+                document.body.removeChild(textArea);
+            };
+
+            return (
+                <button 
+                    onClick={handleCopy}
+                    className="flex items-center space-x-1 text-xs font-semibold text-gray-400 hover:text-indigo-600 transition-colors uppercase tracking-wider"
+                >
+                    <Icon name={copied ? "Check" : "Copy"} className="w-4 h-4" />
+                    <span>{copied ? "Copié!" : label}</span>
+                </button>
+            );
+        };
+
+        const App = () => {
+            // --- ETATS DE L'APPLICATION ---
+            const cycles = ["Cycle 1", "Cycle 2", "Cycle 3", "Cycle 4", "Lycée"];
+            const [activeCycle, setActiveCycle] = useState("Cycle 1");
+            const [selectedGemId, setSelectedGemId] = useState("c1-dialogue");
+            
+            // Base de données gérée en état pour pouvoir ajouter les Gems générés
+            const [gemsState, setGemsState] = useState(initialGemsDatabase);
+            
+            // UI States
+            const [toastMessage, setToastMessage] = useState(null);
+            const [selectedVarianceTag, setSelectedVarianceTag] = useState(null);
+
+            // Formulaire Thème libre
+            const [customForm, setCustomForm] = useState({
+                title: "", context: "", objective: "", skills: ""
+            });
+
+            // Récupération des Gems actuels
+            const currentGems = [...(gemsState[activeCycle] || []), createThemeLibre(activeCycle)];
+            const activeGem = currentGems.find(g => g.id === selectedGemId) || currentGems[0];
+
+            // Changement de cycle : on réinitialise le Gem sélectionné et la variance
+            useEffect(() => {
+                if (!currentGems.find(g => g.id === selectedGemId)) {
+                    setSelectedGemId(currentGems[0].id);
+                }
+                setSelectedVarianceTag(null);
+            }, [activeCycle]);
+            
+            // Changement de Gem : on réinitialise la variance
+            useEffect(() => {
+                setSelectedVarianceTag(null);
+            }, [selectedGemId]);
+
+            // --- LOGIQUE DES FONCTIONNALITÉS ---
+
+            const handleCustomFormChange = (e) => {
+                setCustomForm({...customForm, [e.target.name]: e.target.value});
+            };
+
+            // Fonction de génération dynamique liée au BO de l'oral
+            const generateRelatedBOAssistant = (sourceGem) => {
+                if (sourceGem.isCustom) return; // Ne pas générer à partir du bouton "+" (Thème libre)
+
+                const expectations = boOralExpectations[activeCycle];
+                const randomBO = expectations[Math.floor(Math.random() * expectations.length)];
+                
+                const newGemId = `gen-${Date.now()}`;
+                const newGem = {
+                    id: newGemId,
+                    title: `Dérivé BO : ${randomBO.substring(0, 20)}...`,
+                    icon: "BrainCircuit",
+                    description: `Généré à partir de "${sourceGem.title}". Objectif BO : ${randomBO}.`,
+                    mission: `Tu es un assistant pédagogique pour le ${activeCycle}. Suite à l'activité "${sourceGem.title}", ta mission est de faire travailler l'élève spécifiquement sur cet attendu du Bulletin Officiel : "${randomBO}". Adapte tes relances et ton niveau de langue pour l'obliger à mobiliser cette compétence à l'oral.`,
+                    connaissances: [randomBO, "Compétence Orale BO", sourceGem.connaissances[0] || "Échange"],
+                    complexite: "Adaptative",
+                    isGenerated: true
+                };
+
+                setGemsState(prev => ({
+                    ...prev,
+                    [activeCycle]: [...(prev[activeCycle] || []), newGem]
+                }));
+
+                setToastMessage(`Assistant BO généré : "${randomBO.substring(0, 30)}..."`);
+                setTimeout(() => setToastMessage(null), 3000);
+            };
+
+            // Gestion du Clic sur une Carte Gem
+            const handleGemClick = (gem) => {
+                setSelectedGemId(gem.id);
+                // Si on clique sur un assistant (et non le thème libre), on génère un nouvel assistant BO
+                if (!gem.isCustom) {
+                    generateRelatedBOAssistant(gem);
+                }
+            };
+
+            // Fonction pour générer la mission finale (incluant la variance si cliquée)
+            const getFinalMissionText = () => {
+                if (activeGem.isCustom) {
+                    if(!customForm.context && !customForm.objective) return "Veuillez remplir les champs ci-dessus pour générer le prompt.";
+                    let base = `"Tu es un assistant pédagogique pour des élèves de ${activeCycle}. Ton rôle est de les faire parler de la thématique suivante : ${customForm.context}. Ton objectif pédagogique est : ${customForm.objective}. Pose des questions courtes et relance l'élève pour l'aider à structurer sa pensée."`;
+                    if (selectedVarianceTag) base += `\n\n📌 DIRECTIVE SPÉCIALE (Focus sur : ${selectedVarianceTag}) : Pour cette interaction, concentre toutes tes relances sur cette compétence spécifique. Guide l'élève pas à pas pour qu'il maîtrise cet aspect.`;
+                    return base;
+                } else {
+                    let base = activeGem.mission;
+                    if (selectedVarianceTag) base += `\n\n📌 DIRECTIVE SPÉCIALE (Focus sur : ${selectedVarianceTag}) : Pour cette interaction, concentre toutes tes relances sur cette compétence spécifique. Guide l'élève pas à pas pour qu'il maîtrise cet aspect avant de passer à autre chose.`;
+                    return base;
+                }
+            };
+
+            const getFinalConnaissances = () => {
+                if (activeGem.isCustom) {
+                    return customForm.skills ? customForm.skills.split(',').map(s => s.trim()) : ["Compétence libre"];
+                }
+                return activeGem.connaissances;
+            };
+
+            // --- RENDU UI ---
+            return (
+                <div className="flex h-screen bg-gray-50 text-gray-800">
+                    
+                    {/* SIDEBAR GAUCHE (Navigation Cycles) */}
+                    <div className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm z-10">
+                        <div className="p-6 border-b border-gray-100 flex items-center gap-3">
+                            <div className="bg-indigo-600 text-white p-2 rounded-xl">
+                                <Icon name="Gem" className="w-6 h-6" />
+                            </div>
+                            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
+                                Gemini Educ
+                            </h1>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2">Niveaux</div>
+                            {cycles.map(cycle => (
+                                <button 
+                                    key={cycle} 
+                                    onClick={() => setActiveCycle(cycle)} 
+                                    className={`w-full text-left px-4 py-3 rounded-xl transition-all font-medium flex items-center justify-between group ${
+                                        activeCycle === cycle 
+                                        ? 'bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100' 
+                                        : 'text-gray-600 hover:bg-gray-100 border border-transparent'
+                                    }`}
+                                >
+                                    {cycle}
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                        activeCycle === cycle ? 'bg-indigo-200 text-indigo-800' : 'bg-gray-200 text-gray-500 group-hover:bg-gray-300'
+                                    }`}>
+                                        {(gemsState[cycle] || []).length}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                        <div className="p-4 border-t border-gray-100 text-xs text-gray-400 text-center">
+                            Générateur de Prompts Oral
+                        </div>
+                    </div>
+
+                    {/* CONTENU PRINCIPAL */}
+                    <div className="flex-1 flex flex-col overflow-hidden relative">
+                        {/* HEADER */}
+                        <div className="h-16 bg-white border-b border-gray-200 flex items-center px-8 shadow-sm justify-between">
+                            <h2 className="text-lg font-semibold text-gray-800">
+                                Explorateur d'Assistants - {activeCycle}
+                            </h2>
+                            <div className="text-sm text-gray-500">
+                                Cliquez sur un assistant pour générer une variante BO
+                            </div>
+                        </div>
+
+                        {/* ZONE DE TRAVAIL (Grille + Détails) */}
+                        <div className="flex-1 p-8 overflow-hidden flex gap-8">
+                            
+                            {/* PANNEAU GAUCHE : Grille des Gems */}
+                            <div className="w-5/12 flex flex-col h-full">
+                                <div className="flex-1 overflow-y-auto pr-4 scrollbar-hide space-y-4 pb-12">
+                                    {currentGems.map(gem => (
+                                        <div 
+                                            key={gem.id} 
+                                            onClick={() => handleGemClick(gem)} 
+                                            className={`p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
+                                                selectedGemId === gem.id 
+                                                ? 'border-indigo-500 bg-indigo-50/30 shadow-md transform scale-[1.02]' 
+                                                : 'border-gray-200 bg-white hover:border-indigo-300 hover:shadow-sm'
+                                            } ${gem.isCustom ? 'border-dashed' : ''}`}
+                                        >
+                                            <div className="flex items-start gap-4">
+                                                <div className={`p-3 rounded-xl ${
+                                                    selectedGemId === gem.id ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'
+                                                }`}>
+                                                    <Icon name={gem.icon} className="w-6 h-6" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex justify-between items-start">
+                                                        <h3 className={`font-bold ${selectedGemId === gem.id ? 'text-indigo-900' : 'text-gray-800'}`}>
+                                                            {gem.title}
+                                                        </h3>
+                                                        {gem.isGenerated && (
+                                                            <span className="text-[10px] uppercase font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full whitespace-nowrap ml-2">
+                                                                BO Généré
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 mt-2 line-clamp-2 leading-relaxed">
+                                                        {gem.description}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* PANNEAU DROIT : Détails & Prompt */}
+                            <div className="w-7/12 h-full bg-white rounded-3xl border border-gray-200 shadow-sm flex flex-col overflow-hidden relative">
+                                
+                                {/* Header du Détail */}
+                                <div className="p-8 border-b border-gray-100 bg-gray-50/50">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="bg-indigo-100 text-indigo-600 p-3 rounded-2xl">
+                                            <Icon name={activeGem.icon} className="w-8 h-8" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-gray-900">{activeGem.title}</h2>
+                                            {!activeGem.isCustom && (
+                                                <span className="inline-block mt-1 text-xs font-semibold uppercase tracking-wider text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">
+                                                    Complexité : {activeGem.complexite}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    {!activeGem.isCustom && (
+                                        <p className="text-gray-600 leading-relaxed">
+                                            {activeGem.description}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-8">
+                                    
+                                    {/* Formulaire si Thème Libre */}
+                                    {activeGem.isCustom && (
+                                        <div className="mb-8 space-y-4 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1">Thématique / Contexte</label>
+                                                <input type="text" name="context" value={customForm.context} onChange={handleCustomFormChange} placeholder="Ex: Raconter ses dernières vacances..." className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1">Objectif Pédagogique Principal</label>
+                                                <input type="text" name="objective" value={customForm.objective} onChange={handleCustomFormChange} placeholder="Ex: Utiliser le passé composé correctement..." className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-1">Compétences visées (séparées par des virgules)</label>
+                                                <input type="text" name="skills" value={customForm.skills} onChange={handleCustomFormChange} placeholder="Ex: Conjugaison, Chronologie, Clarté..." className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Section Compétences / Variances */}
+                                    <div className="mb-8">
+                                        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                            <Icon name="BrainCircuit" className="w-4 h-4 text-indigo-500" />
+                                            Attendus & Variances (Cliquez pour isoler)
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {getFinalConnaissances().map((conn, idx) => (
+                                                <button 
+                                                    key={idx}
+                                                    onClick={() => setSelectedVarianceTag(selectedVarianceTag === conn ? null : conn)}
+                                                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                                                        selectedVarianceTag === conn 
+                                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-105' 
+                                                        : 'bg-white text-gray-700 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50'
+                                                    }`}
+                                                >
+                                                    {conn}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Résultat du Prompt */}
+                                    <div>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                                                <Icon name="MessageSquare" className="w-4 h-4 text-green-500" />
+                                                Prompt Généré (Prêt à copier)
+                                            </h3>
+                                            <CopyButton text={getFinalMissionText()} label="Copier le Prompt" />
+                                        </div>
+                                        <div className="bg-gray-900 rounded-2xl p-6 relative group shadow-inner">
+                                            <p className="text-gray-100 font-mono text-sm leading-relaxed whitespace-pre-wrap">
+                                                {getFinalMissionText()}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* TOAST DE NOTIFICATION */}
+                    {toastMessage && (
+                        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-900/90 backdrop-blur-sm text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 toast-animate z-50 border border-gray-700">
+                            <div className="bg-green-500/20 p-1 rounded-full">
+                                <Icon name="Check" className="w-5 h-5 text-green-400" />
+                            </div>
+                            <span className="font-medium">{toastMessage}</span>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

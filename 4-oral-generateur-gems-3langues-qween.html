@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Gems Oral - Programmes Éducation Nationale</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans Arabic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        header .logo {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
+        header p {
+            color: var(--gray-600);
+            font-size: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .filters-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 12px 15px;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 auto;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .generate-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .results-header h2 {
+            font-size: 1.6rem;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-count {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .export-all-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-all-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .gems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            gap: 25px;
+        }
+
+        .gem-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-left: 5px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gem-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .gem-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, transparent 50%, rgba(79, 70, 229, 0.05) 50%);
+            border-radius: 0 15px 0 100%;
+        }
+
+        .gem-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .gem-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 8px;
+        }
+
+        .gem-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .gem-cycle {
+            display: inline-block;
+            padding: 5px 12px;
+            background: var(--primary-light);
+            color: white;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .gem-class {
+            display: inline-block;
+            padding: 5px 12px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .gem-section {
+            margin-bottom: 12px;
+            padding: 12px 15px;
+            border-radius: 10px;
+        }
+
+        .gem-descriptif {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 4px solid var(--primary);
+        }
+
+        .gem-mission {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid var(--accent);
+        }
+
+        .gem-connaissances {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left: 4px solid var(--success);
+        }
+
+        .gem-welcome {
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+            border-left: 4px solid #ec4899;
+        }
+
+        .gem-section-label {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .gem-section-label svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .gem-section-content {
+            font-weight: 500;
+            color: var(--gray-800);
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        .gem-welcome-message {
+            font-style: italic;
+            color: var(--gray-700);
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 8px;
+            margin-top: 5px;
+        }
+
+        .gem-connaissances ul {
+            list-style: none;
+            padding-left: 5px;
+        }
+
+        .gem-connaissances li {
+            padding: 2px 0;
+            padding-left: 20px;
+            position: relative;
+            font-size: 0.85rem;
+            color: var(--gray-700);
+        }
+
+        .gem-connaissances li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .gem-language {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .gem-language span {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            font-weight: 600;
+        }
+
+        .language-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .language-fr {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .language-en {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .language-ar {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .gem-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .gem-action-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .gem-action-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .gem-action-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .gem-action-btn.favorite {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .gem-action-btn.favorite:hover {
+            background: #fde68a;
+        }
+
+        .gem-action-btn.favorite.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            color: var(--gray-600);
+            font-size: 1.1rem;
+        }
+
+        .empty-state {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-state.active {
+            display: block;
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: var(--gray-700);
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: var(--gray-500);
+            font-size: 1rem;
+        }
+
+        .info-banner {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 5px solid var(--primary);
+            padding: 20px 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .info-banner svg {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .info-banner-content h4 {
+            color: var(--primary-dark);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .info-banner-content p {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--gray-800);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.6rem;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .gems-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .arabic-text {
+            font-family: 'Noto Sans Arabic', sans-serif;
+            direction: rtl;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-500);
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--gray-800);
+        }
+
+        .modal h3 {
+            font-size: 1.4rem;
+            color: var(--gray-800);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            color: var(--gray-600);
+            line-height: 1.8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .gemini-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+            color: white;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .prompt-preview {
+            background: var(--gray-900);
+            color: #10b981;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            line-height: 2;
+        }
+
+        .prompt-preview.arabic {
+            font-family: 'Noto Sans Arabic', sans-serif;
+            direction: rtl;
+            text-align: right;
+            line-height: 2.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .modal-copy-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-copy-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .free-theme-fields {
+            display: none;
+            background: var(--gray-50);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px dashed var(--primary);
+        }
+
+        .free-theme-fields.active {
+            display: block;
+        }
+
+        .free-theme-fields .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .free-theme-fields h3 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <img src="https://image.qwenlm.ai/public_source/6d4e6f36-35ab-4b33-8b1d-bdd57363f812/1a53bc5b5-96f0-4e71-83c2-909ed61a2162.png" alt="Logo" class="logo">
+                Générateur de Gems Oral
+                <span class="gemini-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    Pour Gemini
+                </span>
+            </h1>
+            <p>Générez des prompts pour créer des chatbots Gemini personnalisés qui pratiquent l'oral avec les élèves selon les programmes officiels (Cycle 1 à Lycée)</p>
+        </header>
+
+        <div class="filters-section">
+            <div class="info-banner">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="info-banner-content">
+                    <h4>Chatbots Éducatifs pour l'Oral</h4>
+                    <p>Ces gems sont conçues pour être copiées dans Gemini afin de créer des assistants conversationnels qui interagissent directement avec les élèves. La conversation est STRICTEMENT limitée à la langue sélectionnée (Arabe Fusha avec voyelles complètes pour l'arabe).</p>
+                </div>
+            </div>
+
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="cycleFilter">Cycle</label>
+                    <select id="cycleFilter">
+                        <option value="">Tous les cycles</option>
+                        <option value="1">Cycle 1 - École Maternelle (3-6 ans)</option>
+                        <option value="2">Cycle 2 - CP/CE1/CE2 (6-9 ans)</option>
+                        <option value="3">Cycle 3 - CM1/CM2/6ème (9-12 ans)</option>
+                        <option value="4">Cycle 4 - 5ème/4ème/3ème (12-15 ans)</option>
+                        <option value="lycee">Lycée - 2nde/1ère/Terminale (15-18 ans)</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="classFilter">Classe</label>
+                    <select id="classFilter">
+                        <option value="">Toutes les classes</option>
+                        <option value="PS">Petite Section (3-4 ans)</option>
+                        <option value="MS">Moyenne Section (4-5 ans)</option>
+                        <option value="GS">Grande Section (5-6 ans)</option>
+                        <option value="CP">Cours Préparatoire</option>
+                        <option value="CE1">Cours Élémentaire 1</option>
+                        <option value="CE2">Cours Élémentaire 2</option>
+                        <option value="CM1">Cours Moyen 1</option>
+                        <option value="CM2">Cours Moyen 2</option>
+                        <option value="6eme">6ème</option>
+                        <option value="5eme">5ème</option>
+                        <option value="4eme">4ème</option>
+                        <option value="3eme">3ème</option>
+                        <option value="2nde">Seconde</option>
+                        <option value="1ere">Première</option>
+                        <option value="terminale">Terminale</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="competencyFilter">Compétence Orale</label>
+                    <select id="competencyFilter">
+                        <option value="">Toutes les compétences</option>
+                        <option value="ecouter">Écouter pour comprendre</option>
+                        <option value="parler">Parler en prenant en compte l'auditoire</option>
+                        <option value="echanger">Participer à des échanges</option>
+                        <option value="critique">Adopter une distance critique</option>
+                        <option value="exprimer">S'exprimer devant un auditoire</option>
+                        <option value="creatif">Exploiter les ressources créatives</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="themeFilter">Thématique</label>
+                    <select id="themeFilter" onchange="toggleFreeThemeFields()">
+                        <option value="">Toutes les thématiques</option>
+                        <option value="langage">Développement du langage</option>
+                        <option value="maths">Mathématiques</option>
+                        <option value="physique">Activité physique</option>
+                        <option value="artistique">Activités artistiques</option>
+                        <option value="monde">Explorer le monde</option>
+                        <option value="litteraire">Culture littéraire</option>
+                        <option value="scientifique">Sciences et technologie</option>
+                        <option value="histoire">Histoire et Géographie</option>
+                        <option value="medias">Éducation aux médias</option>
+                        <option value="citoyen">Éducation citoyenne</option>
+                        <option value="philosophie">Philosophie</option>
+                        <option value="specialite">Enseignement de spécialité</option>
+                        <option value="free">➕ Ajouter un thème libre</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="languageFilter">Langue du Chatbot</label>
+                    <select id="languageFilter">
+                        <option value="fr">Français</option>
+                        <option value="en">Anglais</option>
+                        <option value="ar">Arabe</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="quantityFilter">Nombre de Gems</label>
+                    <select id="quantityFilter">
+                        <option value="3">3 gems</option>
+                        <option value="5" selected>5 gems</option>
+                        <option value="8">8 gems</option>
+                        <option value="10">10 gems</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Free Theme Fields -->
+            <div class="free-theme-fields" id="freeThemeFields">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    Créer un thème personnalisé
+                </h3>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="freeThemeTitle">Titre du thème *</label>
+                        <input type="text" id="freeThemeTitle" placeholder="Ex: Développement durable">
+                    </div>
+                    <div class="filter-group">
+                        <label for="freeThemeDescription">Description *</label>
+                        <input type="text" id="freeThemeDescription" placeholder="Description courte du thème">
+                    </div>
+                    <div class="filter-group">
+                        <label for="freeThemeMission">Mission pédagogique *</label>
+                        <input type="text" id="freeThemeMission" placeholder="Objectif d'apprentissage">
+                    </div>
+                    <div class="filter-group">
+                        <label for="freeThemeKnowledge">Connaissances (séparées par des virgules) *</label>
+                        <input type="text" id="freeThemeKnowledge" placeholder="Connaissance 1, Connaissance 2, Connaissance 3">
+                    </div>
+                    <div class="filter-group">
+                        <label for="freeThemeWelcome">Message d'accueil *</label>
+                        <input type="text" id="freeThemeWelcome" placeholder="Message d'introduction pour l'élève">
+                    </div>
+                    <div class="filter-group">
+                        <label for="freeThemeInteraction">Type d'interaction *</label>
+                        <input type="text" id="freeThemeInteraction" placeholder="Ex: Questions-réponses, débat, exposition">
+                    </div>
+                    <div class="filter-group">
+                        <label for="freeThemeLanguage">Langue du thème *</label>
+                        <select id="freeThemeLanguage">
+                            <option value="fr">Français</option>
+                            <option value="en">Anglais</option>
+                            <option value="ar">Arabe</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button class="generate-btn" id="generateBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Générer les Gems
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Création de vos chatbots éducatifs en cours...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div class="empty-state" id="emptyState">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            <h3>Aucun chatbot généré</h3>
+            <p>Sélectionnez vos filtres et cliquez sur "Générer les Gems" pour créer des assistants conversationnels.</p>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalGems">0</div>
+                    <div class="stat-label">Gems créées</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalCycles">0</div>
+                    <div class="stat-label">Cycles couverts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalCompetencies">0</div>
+                    <div class="stat-label">Compétences</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalThemes">0</div>
+                    <div class="stat-label">Thématiques</div>
+                </div>
+            </div>
+
+            <div class="results-header">
+                <h2>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="28" height="28">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    Chatbots pour l'Oral
+                </h2>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <span class="results-count" id="resultsCount">0 chatbots</span>
+                    <button class="export-all-btn" onclick="exportAllGems()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Tout copier
+                    </button>
+                </div>
+            </div>
+
+            <div class="gems-grid" id="gemsGrid"></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="modal" id="gemModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <h3 id="modalTitle">
+                Prompt pour Gemini
+            </h3>
+            <div class="modal-body" id="modalBody">
+                <div class="prompt-preview" id="promptPreview"></div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-copy-btn" onclick="copyFromModal()">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copier le prompt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database of oral chatbot prompts based on official BO programs (Cycles 1-4 + Lycée)
+        const chatbotTemplates = {
+            cycle1: {
+                PS: [
+                    {
+                        theme: 'langage',
+                        competency: 'parler',
+                        title: { fr: 'Ami Parleur - PS', en: 'Talking Friend - PS', ar: 'صديق الكلام' },
+                        descriptif: { fr: 'Chatbot compagnon qui encourage les tout-petits à parler et exprimer leurs besoins.', en: 'Companion chatbot that encourages toddlers to speak and express their needs.', ar: 'روبوت محادثة يشجع الأطفال الصغار على الكلام والتعبير عن احتياجاتهم.' },
+                        mission: { fr: 'Créer un espace sécurisé où l\'enfant de 3-4 ans ose prendre la parole et formule des phrases simples.', en: 'Create a safe space where the 3-4 year old child dares to speak and form simple sentences.', ar: 'إنشاء مساحة آمنة حيث يجرؤ الطفل البالغ من العمر 3-4 سنوات على الكلام وصياغة جمل بسيطة.' },
+                        connaissances: {
+                            fr: ['Salutations de base', 'Vocabulaire des besoins', 'Phrases simples sujet-verbe', 'Voyelles articulées'],
+                            en: ['Basic greetings', 'Needs vocabulary', 'Simple subject-verb sentences', 'Articulated vowels'],
+                            ar: ['التحيات الأساسية', 'مفردات الاحتياجات', 'جمل بسيطة فاعل-فعل', 'حروف العلة المفصلة']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Je suis ton ami pour parler. Comment tu t\'appelles ?',
+                            en: 'Hello! I am your talking friend. What is your name?',
+                            ar: 'مرحباً! أنا صديقك للكلام. ما اسمك؟'
+                        },
+                        correctionStyle: {
+                            fr: 'Bien ! Maintenant dis : "Je m\'appelle [prénom]"',
+                            en: 'Good! Now say: "My name is [name]"',
+                            ar: 'جيد! الآن قل: "اسمي [الاسم]"'
+                        },
+                        interactionType: {
+                            fr: 'Questions simples, répétitions, encouragements',
+                            en: 'Simple questions, repetitions, encouragement',
+                            ar: 'أسئلة بسيطة، تكرار، تشجيع'
+                        }
+                    }
+                ],
+                MS: [
+                    {
+                        theme: 'langage',
+                        competency: 'parler',
+                        title: { fr: 'Raconte-moi - MS', en: 'Tell Me - MS', ar: 'أخبرني' },
+                        descriptif: { fr: 'Chatbot qui invite l\'enfant à raconter ses activités et expériences personnelles.', en: 'Chatbot that invites the child to tell about their activities and personal experiences.', ar: 'روبوت محادثة يدعو الطفل لسرد أنشطته وتجاربه الشخصية.' },
+                        mission: { fr: 'Permettre à l\'enfant de 4-5 ans de produire des récits personnels avec structures stabilisées.', en: 'Enable the 4-5 year old child to produce personal narratives with stabilized structures.', ar: 'تمكين الطفل البالغ من العمر 4-5 سنوات من إنتاج سرديات شخصية بهياكل مستقرة.' },
+                        connaissances: {
+                            fr: ['Phrases complètes', 'Pronoms personnels', 'Vocabulaire enrichi (1500 mots)', 'Récits personnels'],
+                            en: ['Complete sentences', 'Personal pronouns', 'Enriched vocabulary (1500 words)', 'Personal narratives'],
+                            ar: ['جمل كاملة', 'ضمائر شخصية', 'مفردات غنية (1500 كلمة)', 'سرديات شخصية']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Qu\'est-ce que tu as fait de beau aujourd\'hui ?',
+                            en: 'Hello! What nice thing did you do today?',
+                            ar: 'مرحباً! ما الشيء الجميل الذي فعلته اليوم؟'
+                        },
+                        correctionStyle: {
+                            fr: 'Très bien ! Peux-tu dire : "J\'ai joué avec..." ?',
+                            en: 'Very good! Can you say: "I played with..."?',
+                            ar: 'جيد جداً! هل يمكنك أن تقول: "لعبت مع..."؟'
+                        },
+                        interactionType: {
+                            fr: 'Questions ouvertes, reformulations, expansions',
+                            en: 'Open questions, reformulations, expansions',
+                            ar: 'أسئلة مفتوحة، إعادة صياغة، توسعات'
+                        }
+                    }
+                ],
+                GS: [
+                    {
+                        theme: 'litteraire',
+                        competency: 'parler',
+                        title: { fr: 'Conteur - GS', en: 'Storyteller - GS', ar: 'الراوي' },
+                        descriptif: { fr: 'Chatbot qui aide l\'enfant à raconter seul un récit étudié en respectant la chronologie.', en: 'Chatbot that helps the child tell a studied story alone respecting chronology.', ar: 'روبوت محادثة يساعد الطفل على سرد قصة درسها واحترام التسلسل الزمني.' },
+                        mission: { fr: 'Permettre à l\'enfant de 5-6 ans de restituer un récit complet de manière autonome.', en: 'Enable the 5-6 year old child to retell a complete story independently.', ar: 'تمكين الطفل البالغ من العمر 5-6 سنوات من سرد قصة كاملة بشكل مستقل.' },
+                        connaissances: {
+                            fr: ['Chronologie du récit', 'Connecteurs temporels', '36 phonèmes articulés', 'Récit complet'],
+                            en: ['Story chronology', 'Time connectors', '36 articulated phonemes', 'Complete story'],
+                            ar: ['تسلسل القصة', 'روابط زمنية', '36 صوتاً مفصلاً', 'قصة كاملة']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Tu te souviens de l\'histoire du Petit Chaperon Rouge ? Raconte-moi !',
+                            en: 'Hello! Do you remember the story of Little Red Riding Hood? Tell me!',
+                            ar: 'مرحباً! هل تتذكر قصة ليلى والذئب؟ أخبرني!'
+                        },
+                        correctionStyle: {
+                            fr: 'Bien ! Et qu\'est-ce qui se passe après ? Utilise "ensuite"...',
+                            en: 'Good! And what happens next? Use "then"...',
+                            ar: 'جيد! وماذا يحدث بعد؟ استخدم "ثم"...'
+                        },
+                        interactionType: {
+                            fr: 'Rappels de récits, questions chronologiques, structuration',
+                            en: 'Story recalls, chronological questions, structuring',
+                            ar: 'تذكير القصص، أسئلة زمنية، هيكلة'
+                        }
+                    }
+                ]
+            },
+            cycle2: {
+                CP: [
+                    {
+                        theme: 'litteraire',
+                        competency: 'ecouter',
+                        title: { fr: 'Écoute Active - CP', en: 'Active Listening - CP', ar: 'الاستماع النشط' },
+                        descriptif: { fr: 'Chatbot qui lit des textes et vérifie la compréhension par des questions.', en: 'Chatbot that reads texts and checks comprehension through questions.', ar: 'روبوت محادثة يقرأ النصوص ويتحقق من الفهم من خلال الأسئلة.' },
+                        mission: { fr: 'Développer l\'attention soutenue et la compréhension de textes longs.', en: 'Develop sustained attention and comprehension of long texts.', ar: 'تطوير الانتباه المستدام وفهم النصوص الطويلة.' },
+                        connaissances: {
+                            fr: ['Écouter un texte long', 'Répondre pertinemment', 'Identifier l\'essentiel', 'Maintenir l\'attention'],
+                            en: ['Listen to a long text', 'Answer appropriately', 'Identify the essentials', 'Maintain attention'],
+                            ar: ['الاستماع لنص طويل', 'الإجابة بشكل مناسب', 'تحديد الأساسيات', 'الحفاظ على الانتباه']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Je vais te lire une histoire. Écoute bien, il y aura des questions !',
+                            en: 'Hello! I will read you a story. Listen carefully, there will be questions!',
+                            ar: 'مرحباً! سأقرأ لك قصة. استمع جيداً، ستكون هناك أسئلة!'
+                        },
+                        correctionStyle: {
+                            fr: 'Vérifions : qui est le personnage principal ?',
+                            en: 'Let\'s check: who is the main character?',
+                            ar: 'لنتحقق: من هي الشخصية الرئيسية؟'
+                        },
+                        interactionType: {
+                            fr: 'Lectures, questions de compréhension, validation',
+                            en: 'Readings, comprehension questions, validation',
+                            ar: 'قراءات، أسئلة الفهم، التحقق'
+                        }
+                    }
+                ],
+                CE1: [
+                    {
+                        theme: 'litteraire',
+                        competency: 'parler',
+                        title: { fr: 'Raconte ton Jour - CE1', en: 'Tell Your Day - CE1', ar: 'احكِ يومك' },
+                        descriptif: { fr: 'Chatbot qui aide à rapporter un événement de manière claire et organisée.', en: 'Chatbot that helps report an event clearly and organized.', ar: 'روبوت محادثة يساعد على سرد حدث بشكل واضح ومنظم.' },
+                        mission: { fr: 'Développer la capacité à raconter de manière structurée avec connecteurs temporels.', en: 'Develop the ability to tell in a structured way with time connectors.', ar: 'تطوير القدرة على السرد بطريقة منظمة مع روابط زمنية.' },
+                        connaissances: {
+                            fr: ['Connecteurs temporels', 'Structure du récit', 'Débit de voix adapté', 'Organisation chronologique'],
+                            en: ['Time connectors', 'Story structure', 'Appropriate speech rate', 'Chronological organization'],
+                            ar: ['روابط زمنية', 'هيكل القصة', 'سرعة كلام مناسبة', 'تنظيم زمني']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Raconte-moi ta journée en utilisant "d\'abord", "ensuite", "enfin" !',
+                            en: 'Hello! Tell me about your day using "first", "then", "finally"!',
+                            ar: 'مرحباً! احكِ لي عن يومك باستخدام "أولاً"، "ثم"، "أخيراً"!'
+                        },
+                        correctionStyle: {
+                            fr: 'Très bien ! N\'oublie pas de dire "ensuite" pour la suite.',
+                            en: 'Very good! Don\'t forget to say "then" for what comes next.',
+                            ar: 'جيد جداً! لا تنسَ أن تقول "ثم" لما يأتي بعد.'
+                        },
+                        interactionType: {
+                            fr: 'Récits organisés, connecteurs temporels, structure',
+                            en: 'Organized narratives, time connectors, structure',
+                            ar: 'سرديات منظمة، روابط زمنية، هيكل'
+                        }
+                    }
+                ],
+                CE2: [
+                    {
+                        theme: 'litteraire',
+                        competency: 'echanger',
+                        title: { fr: 'Débat Junior - CE2', en: 'Junior Debate - CE2', ar: 'مناقشة مبتدئة' },
+                        descriptif: { fr: 'Chatbot qui anime des échanges en respectant les règles conversationnelles de manière autonome.', en: 'Chatbot that leads exchanges respecting conversational rules autonomously.', ar: 'روبوت محادثة يدير التبادلات مع احترام قواعد المحادثة بشكل مستقل.' },
+                        mission: { fr: 'Développer l\'autonomie dans le respect des règles conversationnelles.', en: 'Develop autonomy in respecting conversational rules.', ar: 'تطوير الاستقلالية في احترام قواعد المحادثة.' },
+                        connaissances: {
+                            fr: ['Respecter le tour de parole', 'Écouter activement', 'Rebondir sur les propos', 'Respecter les règles'],
+                            en: ['Respect turn-taking', 'Listen actively', 'Build on statements', 'Respect rules'],
+                            ar: ['احترام دور الكلام', 'الاستماع النشط', 'البناء على العبارات', 'احترام القواعد']
+                        },
+                        welcomeMessage: {
+                            fr: 'Salut ! On débat d\'un sujet ? Je te donne la parole, puis c\'est mon tour !',
+                            en: 'Hi! Shall we debate a topic? I give you the floor, then it\'s my turn!',
+                            ar: 'مرحباً! هل نناقش موضوعاً؟ أعطيك الكلمة، ثم دوري!'
+                        },
+                        correctionStyle: {
+                            fr: 'Intéressant ! Je rebondis sur ton idée...',
+                            en: 'Interesting! I\'m building on your idea...',
+                            ar: 'مثير للاهتمام! أبني على فكرتك...'
+                        },
+                        interactionType: {
+                            fr: 'Débats structurés, tours de parole, écoute active',
+                            en: 'Structured debates, turn-taking, active listening',
+                            ar: 'مناقشات منظمة، أدوار كلام، استماع نشط'
+                        }
+                    }
+                ]
+            },
+            cycle3: {
+                CM1: [
+                    {
+                        theme: 'litteraire',
+                        competency: 'ecouter',
+                        title: { fr: 'Écoute Complexe - CM1', en: 'Complex Listening - CM1', ar: 'الاستماع المعقد' },
+                        descriptif: { fr: 'Chatbot qui fait écouter des récits complexes et identifier les informations essentielles.', en: 'Chatbot that makes listen to complex stories and identify essential information.', ar: 'روبوت محادثة يسمع قصصاً معقدة ويحدد المعلومات الأساسية.' },
+                        mission: { fr: 'Développer la compréhension de récits complexes par l\'identification des informations essentielles.', en: 'Develop comprehension of complex stories by identifying essential information.', ar: 'تطوير فهم القصص المعقدة من خلال تحديد المعلومات الأساسية.' },
+                        connaissances: {
+                            fr: ['Identifier qui, quoi, où, quand', 'Repérer les articulations logiques', 'Mémoriser les enchaînements', 'Hiérarchiser l\'information'],
+                            en: ['Identify who, what, where, when', 'Locate logical articulations', 'Memorize sequences', 'Prioritize information'],
+                            ar: ['تحديد من، ماذا، أين، متى', 'تحديد الروابط المنطقية', 'حفظ التسلسلات', 'ترتيب المعلومات']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Écoute ce récit attentivement. Je te poserai des questions sur les informations importantes.',
+                            en: 'Hello! Listen to this story carefully. I will ask you questions about important information.',
+                            ar: 'مرحباً! استمع لهذه القصة بانتباه. سأطرح عليك أسئلة عن المعلومات المهمة.'
+                        },
+                        correctionStyle: {
+                            fr: 'Vérifions : qui fait quoi ? Où cela se passe-t-il ?',
+                            en: 'Let\'s check: who does what? Where does it happen?',
+                            ar: 'لنتحقق: من يفعل ماذا؟ أين يحدث ذلك؟'
+                        },
+                        interactionType: {
+                            fr: 'Écoutes prolongées, questions ciblées, hiérarchisation',
+                            en: 'Extended listening, targeted questions, prioritization',
+                            ar: 'استماعات مطولة، أسئلة مستهدفة، ترتيب'
+                        }
+                    }
+                ],
+                CM2: [
+                    {
+                        theme: 'litteraire',
+                        competency: 'exprimer',
+                        title: { fr: 'Présentation Numérique - CM2', en: 'Digital Presentation - CM2', ar: 'عرض رقمي' },
+                        descriptif: { fr: 'Chatbot qui entraîne aux présentations orales avec support numérique et contact visuel.', en: 'Chatbot that trains for oral presentations with digital support and eye contact.', ar: 'روبوت محادثة يدرب على العروض الشفهية مع دعم رقمي وتواصل بصري.' },
+                        mission: { fr: 'Développer la maîtrise de l\'exposé avec support numérique et contact visuel.', en: 'Develop mastery of presentation with digital support and eye contact.', ar: 'تطوير إتقان العرض مع دعم رقمي وتواصل بصري.' },
+                        connaissances: {
+                            fr: ['Maintenir le contact visuel', 'Vocabulaire précis', 'Gérer le support numérique', 'Structurer le discours'],
+                            en: ['Maintain eye contact', 'Precise vocabulary', 'Manage digital support', 'Structure speech'],
+                            ar: ['الحفاظ على التواصل البصري', 'مفردات دقيقة', 'إدارة الدعم الرقمي', 'هيكلة الخطاب']
+                        },
+                        welcomeMessage: {
+                            fr: 'Salut ! Présente ton sujet avec ton diaporama. Regarde-moi quand tu parles !',
+                            en: 'Hi! Present your topic with your slideshow. Look at me when you speak!',
+                            ar: 'مرحباً! قدم موضوعك مع عرضك التقديمي. انظر إلي عندما تتكلم!'
+                        },
+                        correctionStyle: {
+                            fr: 'Bien ! N\'oublie pas le contact visuel avec ton auditoire.',
+                            en: 'Good! Don\'t forget eye contact with your audience.',
+                            ar: 'جيد! لا تنسَ التواصل البصري مع جمهورك.'
+                        },
+                        interactionType: {
+                            fr: 'Présentations avec supports, contact visuel, précision lexicale',
+                            en: 'Presentations with supports, eye contact, lexical precision',
+                            ar: 'عروض مع دعم، تواصل بصري، دقة معجمية'
+                        }
+                    }
+                ],
+                '6eme': [
+                    {
+                        theme: 'litteraire',
+                        competency: 'ecouter',
+                        title: { fr: 'Reformulation Complexe - 6ème', en: 'Complex Reformulation - 6th', ar: 'إعادة صياغة معقدة' },
+                        descriptif: { fr: 'Chatbot qui fait reformuler l\'essentiel d\'un propos complexe et poser des questions pertinentes.', en: 'Chatbot that makes reformulate the essentials of a complex statement and ask relevant questions.', ar: 'روبوت محادثة يعيد صياغة أساسيات بيان معقد ويطرح أسئلة مناسبة.' },
+                        mission: { fr: 'Développer la compréhension et la reformulation de propos complexes.', en: 'Develop comprehension and reformulation of complex statements.', ar: 'تطوير فهم وإعادة صياغة بيانات معقدة.' },
+                        connaissances: {
+                            fr: ['Identifier l\'essentiel', 'Reformuler avec ses mots', 'Poser des questions pertinentes', 'Comprendre la structure'],
+                            en: ['Identify the essentials', 'Reformulate in own words', 'Ask relevant questions', 'Understand structure'],
+                            ar: ['تحديد الأساسيات', 'إعادة الصياغة بكلماتك', 'طرح أسئلة مناسبة', 'فهم الهيكل']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Écoute ce propos complexe puis reformule l\'essentiel avec tes mots.',
+                            en: 'Hello! Listen to this complex statement then reformulate the essentials in your words.',
+                            ar: 'مرحباً! استمع لهذا البيان المعقد ثم أعد صياغة الأساسيات بكلماتك.'
+                        },
+                        correctionStyle: {
+                            fr: 'Bien ! As-tu identifié l\'idée principale ? Pose-moi une question pertinente.',
+                            en: 'Good! Did you identify the main idea? Ask me a relevant question.',
+                            ar: 'جيد! هل حددت الفكرة الرئيسية؟ اطرح عليّ سؤالاً مناسباً.'
+                        },
+                        interactionType: {
+                            fr: 'Reformulations, questions pertinentes, analyse structurelle',
+                            en: 'Reformulations, relevant questions, structural analysis',
+                            ar: 'إعادة صياغات، أسئلة مناسبة، تحليل هيكلي'
+                        }
+                    }
+                ]
+            },
+            cycle4: {
+                '5eme': [
+                    {
+                        theme: 'litteraire',
+                        competency: 'ecouter',
+                        title: { fr: 'Visées du Discours - 5ème', en: 'Speech Purposes - 5th', ar: 'أغراض الخطاب' },
+                        descriptif: { fr: 'Chatbot qui fait identifier les visées d\'un discours oral et mémoriser les éléments importants.', en: 'Chatbot that identifies the purposes of an oral speech and memorizes important elements.', ar: 'روبوت محادثة يحدد أغراض خطاب شفهي ويحفظ العناصر المهمة.' },
+                        mission: { fr: 'Développer la compréhension des intentions et visées d\'un discours.', en: 'Develop understanding of intentions and purposes of a speech.', ar: 'تطوير فهم النوايا وأغراض خطاب.' },
+                        connaissances: {
+                            fr: ['Reconnaître l\'intention', 'Mémoriser les points clés', 'Analyser la structure', 'Identifier les visées'],
+                            en: ['Recognize intention', 'Memorize key points', 'Analyze structure', 'Identify purposes'],
+                            ar: ['الاعتراف بالنية', 'حفظ النقاط الرئيسية', 'تحليل الهيكل', 'تحديد الأغراض']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Écoute ce discours. Quelle est l\'intention de l\'orateur ? Convaincre, informer, émouvoir ?',
+                            en: 'Hello! Listen to this speech. What is the speaker\'s intention? To convince, inform, or move?',
+                            ar: 'مرحباً! استمع لهذا الخطاب. ما هي نية المتحدث؟ إقناع، توثيق، أو تأثير؟'
+                        },
+                        correctionStyle: {
+                            fr: 'Analysons : quelle est la visée principale ? Quels sont les points clés ?',
+                            en: 'Let\'s analyze: what is the main purpose? What are the key points?',
+                            ar: 'لنحلل: ما هو الغرض الرئيسي؟ ما هي النقاط الرئيسية؟'
+                        },
+                        interactionType: {
+                            fr: 'Analyse de discours, identification des visées, mémorisation',
+                            en: 'Speech analysis, identification of purposes, memorization',
+                            ar: 'تحليل خطابات، تحديد الأغراض، حفظ'
+                        }
+                    }
+                ],
+                '4eme': [
+                    {
+                        theme: 'litteraire',
+                        competency: 'exprimer',
+                        title: { fr: 'Émotions et Œuvres - 4ème', en: 'Emotions and Works - 4th', ar: 'العواطف والأعمال' },
+                        descriptif: { fr: 'Chatbot qui fait exprimer des sensations et sentiments après la découverte d\'une œuvre.', en: 'Chatbot that expresses sensations and feelings after discovering a work.', ar: 'روبوت محادثة يعبر عن الأحاسيس والمشاعر بعد اكتشاف عمل.' },
+                        mission: { fr: 'Développer l\'expression des émotions et ressentis face aux œuvres.', en: 'Develop expression of emotions and feelings towards works.', ar: 'تطوير التعبير عن العواطف والمشاعر تجاه الأعمال.' },
+                        connaissances: {
+                            fr: ['Décrire ses émotions', 'Vocabulaire riche', 'Justifier son ressenti', 'Analyser une œuvre'],
+                            en: ['Describe emotions', 'Rich vocabulary', 'Justify feelings', 'Analyze a work'],
+                            ar: ['وصف العواطف', 'مفردات غنية', 'تبرير المشاعر', 'تحليل عمل']
+                        },
+                        welcomeMessage: {
+                            fr: 'Salut ! Après avoir découvert cette œuvre, qu\'as-tu ressenti ? Décris tes émotions avec des mots précis.',
+                            en: 'Hi! After discovering this work, what did you feel? Describe your emotions with precise words.',
+                            ar: 'مرحباً! بعد اكتشاف هذا العمل، ماذا شعرت؟ صف عواطفك بكلمات دقيقة.'
+                        },
+                        correctionStyle: {
+                            fr: 'Intéressant ! Peux-tu utiliser un vocabulaire plus riche pour décrire cette émotion ?',
+                            en: 'Interesting! Can you use richer vocabulary to describe this emotion?',
+                            ar: 'مثير للاهتمام! هل يمكنك استخدام مفردات أكثر غنى لوصف هذه العاطفة؟'
+                        },
+                        interactionType: {
+                            fr: 'Expression d\'émotions, vocabulaire des sentiments, justification',
+                            en: 'Expression of emotions, feelings vocabulary, justification',
+                            ar: 'تعبير عن العواطف، مفردات المشاعر، تبرير'
+                        }
+                    }
+                ],
+                '3eme': [
+                    {
+                        theme: 'citoyen',
+                        competency: 'exprimer',
+                        title: { fr: 'Soutenance DNB - 3ème', en: 'DNB Defense - 3rd', ar: 'مناقشة الشهادة' },
+                        descriptif: { fr: 'Chatbot qui prépare à la soutenance orale du DNB (10 minutes, détaché des notes).', en: 'Chatbot that prepares for the DNB oral defense (10 minutes, detached from notes).', ar: 'روبوت محادثة يحضر للمناقشة الشفهية للشهادة (10 دقائق، مستقل عن الملاحظات).' },
+                        mission: { fr: 'Préparer à la soutenance orale du Diplôme National du Brevet.', en: 'Prepare for the National Brevet Diploma oral defense.', ar: 'التحضير للمناقشة الشفهية لدبلوم الشهادة الوطنية.' },
+                        connaissances: {
+                            fr: ['Présenter un projet (10 min)', 'Se détacher des notes', 'Répondre aux questions du jury', 'Maîtriser les codes de l\'exposé'],
+                            en: ['Present a project (10 min)', 'Detach from notes', 'Answer jury questions', 'Master presentation codes'],
+                            ar: ['تقديم مشروع (10 دقائق)', 'الاستقلال عن الملاحظات', 'الإجابة على أسئلة لجنة التحكيم', 'إتقان رموز العرض']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Présente ton projet de stage en 10 minutes comme pour le DNB. Limite tes notes.',
+                            en: 'Hello! Present your internship project in 10 minutes like for the DNB. Limit your notes.',
+                            ar: 'مرحباً! قدم مشروع تدريبك في 10 دقائق كما للشهادة. حدد ملاحظاتك.'
+                        },
+                        correctionStyle: {
+                            fr: 'Bien ! Essaie de moins lire tes notes et regarde ton auditoire.',
+                            en: 'Good! Try to read your notes less and look at your audience.',
+                            ar: 'جيد! حاول قراءة ملاحظاتك أقل وانظر إلى جمهورك.'
+                        },
+                        interactionType: {
+                            fr: 'Simulations de soutenance, gestion du temps, questions du jury',
+                            en: 'Defense simulations, time management, jury questions',
+                            ar: 'محاكاة مناقشات، إدارة الوقت، أسئلة لجنة التحكيم'
+                        }
+                    }
+                ]
+            },
+            lycee: {
+                '2nde': [
+                    {
+                        theme: 'litteraire',
+                        competency: 'exprimer',
+                        title: { fr: 'Lecture Analytique - 2nde', en: 'Analytical Reading - 2nde', ar: 'القراءة التحليلية' },
+                        descriptif: { fr: 'Chatbot qui accompagne l\'élève dans l\'analyse orale d\'un texte littéraire.', en: 'Chatbot that accompanies the student in oral analysis of a literary text.', ar: 'روبوت محادثة يرافق الطالب في التحليل الشفهي لنص أدبي.' },
+                        mission: { fr: 'Développer la capacité à analyser et commenter oralement un texte littéraire selon les attendus de 2nde.', en: 'Develop the ability to analyze and comment orally on a literary text according to 2nde expectations.', ar: 'تطوير القدرة على تحليل والتعليق شفهياً على نص أدبي وفق توقعات السنة الثانية.' },
+                        connaissances: {
+                            fr: ['Identifier les procédés stylistiques', 'Analyser la structure du texte', 'Formuler une interprétation', 'Utiliser le vocabulaire littéraire'],
+                            en: ['Identify stylistic devices', 'Analyze text structure', 'Formulate an interpretation', 'Use literary vocabulary'],
+                            ar: ['تحديد الأساليب البلاغية', 'تحليل هيكل النص', 'صياغة تفسير', 'استخدام المفردات الأدبية']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Nous allons analyser ce texte ensemble. Peux-tu me dire quel est le thème principal ?',
+                            en: 'Hello! We will analyze this text together. Can you tell me what the main theme is?',
+                            ar: 'مرحباً! سنحلل هذا النص معاً. هل يمكنك أن تخبرني ما هو الموضوع الرئيسي؟'
+                        },
+                        correctionStyle: {
+                            fr: 'Bien ! Peux-tu justifier ton interprétation par des éléments du texte ?',
+                            en: 'Good! Can you justify your interpretation with elements from the text?',
+                            ar: 'جيد! هل يمكنك تبرير تفسيرك بعناصر من النص؟'
+                        },
+                        interactionType: {
+                            fr: 'Analyse de texte, interprétation, justification',
+                            en: 'Text analysis, interpretation, justification',
+                            ar: 'تحليل النص، التفسير، التبرير'
+                        }
+                    }
+                ],
+                '1ere': [
+                    {
+                        theme: 'litteraire',
+                        competency: 'exprimer',
+                        title: { fr: 'Préparation Oral EAF - 1ère', en: 'EAF Oral Prep - 1ère', ar: 'تحضير الامتحان الشفهي' },
+                        descriptif: { fr: 'Chatbot qui prépare à l\'épreuve orale anticipé de français (10 min de parole + 10 min d\'entretien).', en: 'Chatbot that prepares for the anticipated French oral exam (10 min speech + 10 min interview).', ar: 'روبوت محادثة يحضر للامتحان الشفهي المتوقع للفرنسية (10 دقائق كلام + 10 دقائق مقابلة).' },
+                        mission: { fr: 'Préparer l\'élève à présenter une œuvre et répondre aux questions du jury selon les attendus de 1ère.', en: 'Prepare the student to present a work and answer jury questions according to 1ère expectations.', ar: 'تحضير الطالب لتقديم عمل والإجابة على أسئلة اللجنة وفق توقعات السنة الأولى.' },
+                        connaissances: {
+                            fr: ['Présenter une œuvre (5 min)', 'Expliquer le choix de l\'œuvre', 'Répondre aux questions', 'Maîtriser les notions littéraires'],
+                            en: ['Present a work (5 min)', 'Explain choice of work', 'Answer questions', 'Master literary concepts'],
+                            ar: ['تقديم عمل (5 دقائق)', 'شرح اختيار العمل', 'الإجابة على الأسئلة', 'إتقان المفاهيم الأدبية']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Je vais t\'aider à préparer ton oral de français. Quelle œuvre as-tu choisie ?',
+                            en: 'Hello! I will help you prepare for your French oral. Which work did you choose?',
+                            ar: 'مرحباً! سأساعدك في التحضير للامتحان الشفهي للفرنسية. أي عمل اخترت؟'
+                        },
+                        correctionStyle: {
+                            fr: 'Bien structuré ! Peux-tu développer davantage le lien avec le parcours associé ?',
+                            en: 'Well structured! Can you develop more the link with the associated pathway?',
+                            ar: 'مهيكَل جيد! هل يمكنك تطوير أكثر الرابط مع المسار المرتبط؟'
+                        },
+                        interactionType: {
+                            fr: 'Présentation d\'œuvre, entretien, notions littéraires',
+                            en: 'Work presentation, interview, literary concepts',
+                            ar: 'تقديم عمل، مقابلة، مفاهيم أدبية'
+                        }
+                    }
+                ],
+                'terminale': [
+                    {
+                        theme: 'philosophie',
+                        competency: 'exprimer',
+                        title: { fr: 'Oral Philosophie - Terminale', en: 'Philosophy Oral - Terminale', ar: 'الامتحان الشفهي للفلسفة' },
+                        descriptif: { fr: 'Chatbot qui prépare à l\'oral de philosophie (exposé de 5 min + entretien de 15 min).', en: 'Chatbot that prepares for the philosophy oral (5 min presentation + 15 min interview).', ar: 'روبوت محادثة يحضر للامتحان الشفهي للفلسفة (عرض 5 دقائق + مقابلة 15 دقيقة).' },
+                        mission: { fr: 'Préparer l\'élève à construire et exposer une problématique philosophique de manière argumentée.', en: 'Prepare the student to construct and present a philosophical problem in an argued manner.', ar: 'تحضير الطالب لبناء وعرض إشكالية فلسفية بطريقة مُجادَلة.' },
+                        connaissances: {
+                            fr: ['Construire une problématique', 'Mobiliser des concepts philosophiques', 'Argumenter de manière structurée', 'Répondre aux objections'],
+                            en: ['Construct a problem', 'Mobilize philosophical concepts', 'Argue in a structured way', 'Respond to objections'],
+                            ar: ['بناء إشكالية', 'تعبئة المفاهيم الفلسفية', 'المجادلة بطريقة منظمة', 'الرد على الاعتراضات']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Nous allons travailler ta préparation à l\'oral de philosophie. Quel est le sujet que tu souhaites traiter ?',
+                            en: 'Hello! We will work on your philosophy oral preparation. What topic do you want to address?',
+                            ar: 'مرحباً! سنعمل على تحضيرك للامتحان الشفهي للفلسفة. ما الموضوع الذي تريد معالجته؟'
+                        },
+                        correctionStyle: {
+                            fr: 'Bonne problématique ! Peux-tu maintenant développer ton argumentation avec des exemples concrets ?',
+                            en: 'Good problem! Can you now develop your argumentation with concrete examples?',
+                            ar: 'إشكالية جيدة! هل يمكنك الآن تطوير مجادلتك بأمثلة ملموسة؟'
+                        },
+                        interactionType: {
+                            fr: 'Construction de problématique, argumentation, concepts philosophiques',
+                            en: 'Problem construction, argumentation, philosophical concepts',
+                            ar: 'بناء إشكالية، مجادلة، مفاهيم فلسفية'
+                        }
+                    },
+                    {
+                        theme: 'specialite',
+                        competency: 'exprimer',
+                        title: { fr: 'Grand Oral - Terminale', en: 'Grand Oral - Terminale', ar: 'الامتحان الشفهي الكبير' },
+                        descriptif: { fr: 'Chatbot qui prépare au Grand Oral du baccalauréat (5 min de parole en continu + 10 min d\'échange).', en: 'Chatbot that prepares for the Grand Oral of the baccalaureate (5 min continuous speech + 10 min exchange).', ar: 'روبوت محادثة يحضر للامتحان الشفهي الكبير للبكالوريا (5 دقائق كلام مستمر + 10 دقائق تبادل).' },
+                        mission: { fr: 'Préparer l\'élève à présenter sa question de spécialité et à dialoguer avec le jury de manière convaincante.', en: 'Prepare the student to present their specialty question and dialogue with the jury in a convincing manner.', ar: 'تحضير الطالب لتقديم سؤال التخصص والحوار مع اللجنة بطريقة مقنعة.' },
+                        connaissances: {
+                            fr: ['Présenter une question de spécialité (5 min)', 'Mobiliser les connaissances disciplinaires', 'Dialoguer avec le jury', 'Argumenter avec précision'],
+                            en: ['Present a specialty question (5 min)', 'Mobilize disciplinary knowledge', 'Dialogue with jury', 'Argue with precision'],
+                            ar: ['تقديم سؤال تخصص (5 دقائق)', 'تعبئة المعارف التخصصية', 'الحوار مع اللجنة', 'المجادلة بدقة']
+                        },
+                        welcomeMessage: {
+                            fr: 'Bonjour ! Je vais t\'aider à préparer ton Grand Oral. Quelle est ta question de spécialité ?',
+                            en: 'Hello! I will help you prepare for your Grand Oral. What is your specialty question?',
+                            ar: 'مرحباً! سأساعدك في تحضير الامتحان الشفهي الكبير. ما هو سؤال تخصصك؟'
+                        },
+                        correctionStyle: {
+                            fr: 'Bien ! Peux-tu approfondir en mobilisant des concepts plus précis de ta spécialité ?',
+                            en: 'Good! Can you deepen by mobilizing more precise concepts from your specialty?',
+                            ar: 'جيد! هل يمكنك التعمق بتعبئة مفاهيم أكثر دقة من تخصصك؟'
+                        },
+                        interactionType: {
+                            fr: 'Présentation de question, dialogue, connaissances disciplinaires',
+                            en: 'Question presentation, dialogue, disciplinary knowledge',
+                            ar: 'تقديم سؤال، حوار، معارف تخصصية'
+                        }
+                    }
+                ]
+            }
+        };
+
+        let currentGems = [];
+        let favorites = [];
+        let currentModalPrompt = '';
+        let freeThemeData = null;
+
+        function toggleFreeThemeFields() {
+            const themeFilter = document.getElementById('themeFilter');
+            const freeThemeFields = document.getElementById('freeThemeFields');
+            
+            if (themeFilter.value === 'free') {
+                freeThemeFields.classList.add('active');
+            } else {
+                freeThemeFields.classList.remove('active');
+            }
+        }
+
+        function getColorForCycle(cycle) {
+            const colors = { 
+                '1': '#4f46e5', 
+                '2': '#06b6d4', 
+                '3': '#f59e0b', 
+                '4': '#ef4444',
+                'lycee': '#8b5cf6'
+            };
+            return colors[cycle] || '#4f46e5';
+        }
+
+        function generateGems() {
+            try {
+                const cycleFilter = document.getElementById('cycleFilter').value;
+                const classFilter = document.getElementById('classFilter').value;
+                const competencyFilter = document.getElementById('competencyFilter').value;
+                const themeFilter = document.getElementById('themeFilter').value;
+                const languageFilter = document.getElementById('languageFilter').value;
+                const quantityFilter = parseInt(document.getElementById('quantityFilter').value);
+
+                // Handle free theme
+                if (themeFilter === 'free') {
+                    const freeTitle = document.getElementById('freeThemeTitle').value.trim();
+                    const freeDescription = document.getElementById('freeThemeDescription').value.trim();
+                    const freeMission = document.getElementById('freeThemeMission').value.trim();
+                    const freeKnowledge = document.getElementById('freeThemeKnowledge').value.trim();
+                    const freeWelcome = document.getElementById('freeThemeWelcome').value.trim();
+                    const freeInteraction = document.getElementById('freeThemeInteraction').value.trim();
+                    const freeLanguage = document.getElementById('freeThemeLanguage').value;
+
+                    if (!freeTitle || !freeDescription || !freeMission || !freeKnowledge || !freeWelcome || !freeInteraction) {
+                        showToast('Veuillez remplir tous les champs du thème libre', '');
+                        document.getElementById('loading').classList.remove('active');
+                        return;
+                    }
+
+                    freeThemeData = {
+                        title: freeTitle,
+                        descriptif: freeDescription,
+                        mission: freeMission,
+                        connaissances: freeKnowledge.split(',').map(k => k.trim()),
+                        welcomeMessage: freeWelcome,
+                        interactionType: freeInteraction,
+                        theme: 'free',
+                        competency: competencyFilter || 'parler',
+                        language: freeLanguage
+                    };
+                } else {
+                    freeThemeData = null;
+                }
+
+                document.getElementById('loading').classList.add('active');
+                document.getElementById('resultsSection').classList.remove('active');
+                document.getElementById('emptyState').classList.remove('active');
+
+                let progress = 0;
+                const progressInterval = setInterval(function() {
+                    progress += 10;
+                    document.getElementById('progressFill').style.width = progress + '%';
+                    if (progress >= 100) {
+                        clearInterval(progressInterval);
+                    }
+                }, 100);
+
+                setTimeout(function() {
+                    let availableActivities = [];
+
+                    // If free theme is selected, use it
+                    if (freeThemeData) {
+                        const cycles = cycleFilter ? [cycleFilter] : ['1', '2', '3', '4', 'lycee'];
+                        
+                        cycles.forEach(function(cycle) {
+                            if (cycle === 'lycee') {
+                                const classes = classFilter ? [classFilter] : ['2nde', '1ere', 'terminale'];
+                                classes.forEach(function(classLevel) {
+                                    availableActivities.push({
+                                        ...freeThemeData,
+                                        cycle: 'lycee',
+                                        class: classLevel
+                                    });
+                                });
+                            } else {
+                                const cycleKey = 'cycle' + cycle;
+                                const cycleData = chatbotTemplates[cycleKey];
+                                if (cycleData) {
+                                    const classes = classFilter ? [classFilter] : Object.keys(cycleData);
+                                    classes.forEach(function(classLevel) {
+                                        if (cycleData[classLevel]) {
+                                            availableActivities.push({
+                                                ...freeThemeData,
+                                                cycle: cycle,
+                                                class: classLevel
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    } else {
+                        // Filter by cycle and class
+                        if (cycleFilter || classFilter) {
+                            if (cycleFilter === 'lycee') {
+                                const lyceeData = chatbotTemplates.lycee;
+                                if (lyceeData) {
+                                    const classes = classFilter ? [classFilter] : Object.keys(lyceeData);
+                                    classes.forEach(function(classLevel) {
+                                        if (lyceeData[classLevel]) {
+                                            lyceeData[classLevel].forEach(function(activity) {
+                                                let matches = true;
+                                                
+                                                if (classFilter && classLevel !== classFilter) {
+                                                    matches = false;
+                                                }
+                                                
+                                                if (competencyFilter && activity.competency !== competencyFilter) {
+                                                    matches = false;
+                                                }
+                                                
+                                                if (themeFilter && activity.theme !== themeFilter) {
+                                                    matches = false;
+                                                }
+                                                
+                                                if (matches) {
+                                                    availableActivities.push({
+                                                        ...activity,
+                                                        cycle: 'lycee',
+                                                        class: classLevel
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            } else if (cycleFilter) {
+                                const cycleKey = 'cycle' + cycleFilter;
+                                const cycleData = chatbotTemplates[cycleKey];
+                                
+                                if (cycleData) {
+                                    const classes = classFilter ? [classFilter] : Object.keys(cycleData);
+                                    
+                                    classes.forEach(function(classLevel) {
+                                        if (cycleData[classLevel]) {
+                                            cycleData[classLevel].forEach(function(activity) {
+                                                let matches = true;
+                                                
+                                                if (classFilter && classLevel !== classFilter) {
+                                                    matches = false;
+                                                }
+                                                
+                                                if (competencyFilter && activity.competency !== competencyFilter) {
+                                                    matches = false;
+                                                }
+                                                
+                                                if (themeFilter && activity.theme !== themeFilter) {
+                                                    matches = false;
+                                                }
+                                                
+                                                if (matches) {
+                                                    availableActivities.push({
+                                                        ...activity,
+                                                        cycle: cycleFilter,
+                                                        class: classLevel
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            } else if (classFilter) {
+                                ['cycle1', 'cycle2', 'cycle3', 'cycle4'].forEach(function(cycleKey) {
+                                    const cycleData = chatbotTemplates[cycleKey];
+                                    if (cycleData && cycleData[classFilter]) {
+                                        cycleData[classFilter].forEach(function(activity) {
+                                            let matches = true;
+                                            
+                                            if (competencyFilter && activity.competency !== competencyFilter) {
+                                                matches = false;
+                                            }
+                                            
+                                            if (themeFilter && activity.theme !== themeFilter) {
+                                                matches = false;
+                                            }
+                                            
+                                            if (matches) {
+                                                const cycleNum = cycleKey.replace('cycle', '');
+                                                availableActivities.push({
+                                                    ...activity,
+                                                    cycle: cycleNum,
+                                                    class: classFilter
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                                
+                                const lyceeData = chatbotTemplates.lycee;
+                                if (lyceeData && lyceeData[classFilter]) {
+                                    lyceeData[classFilter].forEach(function(activity) {
+                                        let matches = true;
+                                        
+                                        if (competencyFilter && activity.competency !== competencyFilter) {
+                                            matches = false;
+                                        }
+                                        
+                                        if (themeFilter && activity.theme !== themeFilter) {
+                                            matches = false;
+                                        }
+                                        
+                                        if (matches) {
+                                            availableActivities.push({
+                                                ...activity,
+                                                cycle: 'lycee',
+                                                class: classFilter
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        }
+
+                        // No filters - get all activities
+                        if (!cycleFilter && !classFilter) {
+                            ['cycle1', 'cycle2', 'cycle3', 'cycle4'].forEach(function(cycleKey, index) {
+                                const cycleData = chatbotTemplates[cycleKey];
+                                if (cycleData) {
+                                    Object.keys(cycleData).forEach(function(classLevel) {
+                                        cycleData[classLevel].forEach(function(activity) {
+                                            let matches = true;
+                                            
+                                            if (competencyFilter && activity.competency !== competencyFilter) {
+                                                matches = false;
+                                            }
+                                            
+                                            if (themeFilter && activity.theme !== themeFilter) {
+                                                matches = false;
+                                            }
+                                            
+                                            if (matches) {
+                                                availableActivities.push({
+                                                    ...activity,
+                                                    cycle: (index + 1).toString(),
+                                                    class: classLevel
+                                                });
+                                            }
+                                        });
+                                    });
+                                }
+                            });
+                            
+                            const lyceeData = chatbotTemplates.lycee;
+                            if (lyceeData) {
+                                Object.keys(lyceeData).forEach(function(classLevel) {
+                                    lyceeData[classLevel].forEach(function(activity) {
+                                        let matches = true;
+                                        
+                                        if (competencyFilter && activity.competency !== competencyFilter) {
+                                            matches = false;
+                                        }
+                                        
+                                        if (themeFilter && activity.theme !== themeFilter) {
+                                            matches = false;
+                                        }
+                                        
+                                        if (matches) {
+                                            availableActivities.push({
+                                                ...activity,
+                                                cycle: 'lycee',
+                                                class: classLevel
+                                            });
+                                        }
+                                    });
+                                });
+                            }
+                        }
+                    }
+
+                    // Shuffle and select
+                    availableActivities = availableActivities.sort(function() { return Math.random() - 0.5; });
+                    currentGems = availableActivities.slice(0, quantityFilter);
+
+                    document.getElementById('loading').classList.remove('active');
+                    document.getElementById('progressFill').style.width = '0%';
+
+                    if (currentGems.length === 0) {
+                        document.getElementById('emptyState').classList.add('active');
+                    } else {
+                        displayGems(languageFilter);
+                        updateStats();
+                    }
+                }, 1500);
+            } catch (error) {
+                console.error('Error generating gems:', error);
+                document.getElementById('loading').classList.remove('active');
+                showToast('Erreur lors de la génération', '');
+            }
+        }
+
+        function createGeminiPrompt(gem, language) {
+            const titleText = gem.title[language] || gem.title;
+            const missionText = gem.mission[language] || gem.mission;
+            const welcomeText = gem.welcomeMessage[language] || gem.welcomeMessage;
+            const connaissancesList = gem.connaissances[language] || gem.connaissances;
+            const correctionStyleText = gem.correctionStyle ? (gem.correctionStyle[language] || gem.correctionStyle) : '';
+            const interactionTypeText = gem.interactionType[language] || gem.interactionType;
+
+            // Use the language from free theme if available, otherwise use the filter language
+            const promptLanguage = gem.language || language;
+
+            if (promptLanguage === 'fr') {
+                return `# CHATBOT ÉDUCATIF POUR L'ORAL - ${titleText}
+
+## RÔLE
+Tu es un assistant conversationnel bienveillant qui aide les élèves à pratiquer l'oral selon leur niveau (${gem.class}, ${gem.cycle === 'lycee' ? 'Lycée' : 'Cycle ' + gem.cycle}).
+
+## MISSION
+${missionText}
+
+## MESSAGE D'ACCUEIL (à dire à l'élève)
+"${welcomeText}"
+
+## CONNAISSANCES À DÉVELOPPER
+${connaissancesList.map(function(k) { return '- ' + k; }).join('\n')}
+
+${correctionStyleText ? '## STYLE DE CORRECTION\n' + correctionStyleText + '\n' : ''}
+## RÈGLES D'INTERACTION
+1. Parle avec un langage adapté à l'âge de l'élève
+2. Pose des questions courtes et claires
+3. Laisse du temps à l'élève pour répondre
+4. Corrige gentiment en reformulant correctement
+5. Encourage et valorise chaque tentative
+6. Fais parler l'élève, ne parle pas trop toi-même
+7. Adapte ton vocabulaire au niveau de la classe
+
+## CONTRAINTE DE LANGUE TRÈS IMPORTANTE
+- Parle EXCLUSIVEMENT en FRANÇAIS
+- N'utilise AUCUNE autre langue que le français
+- Si l'élève parle dans une autre langue, demande-lui en français de parler en français
+- Toutes tes réponses, corrections et questions doivent être en FRANÇAIS uniquement
+
+## TYPE D'INTERACTION
+${interactionTypeText}
+
+## LANGUE
+Français
+
+Commence toujours par le message d'accueil et attends la réponse de l'élève.`;
+            } else if (promptLanguage === 'en') {
+                return `# EDUCATIONAL ORAL CHATBOT - ${titleText}
+
+## ROLE
+You are a friendly conversational assistant that helps students practice speaking according to their level (${gem.class}, ${gem.cycle === 'lycee' ? 'High School' : 'Cycle ' + gem.cycle}).
+
+## MISSION
+${missionText}
+
+## WELCOME MESSAGE (to say to the student)
+"${welcomeText}"
+
+## KNOWLEDGE TO DEVELOP
+${connaissancesList.map(function(k) { return '- ' + k; }).join('\n')}
+
+${correctionStyleText ? '## CORRECTION STYLE\n' + correctionStyleText + '\n' : ''}
+## INTERACTION RULES
+1. Speak with language appropriate to the student's age
+2. Ask short and clear questions
+3. Give the student necessary time to respond
+4. Correct gently by reformulating correctly
+5. Encourage and value every attempt
+6. Make the student speak, don't talk too much yourself
+7. Adapt your vocabulary to the class level
+
+## CRITICAL LANGUAGE CONSTRAINT
+- Speak EXCLUSIVELY in English ONLY
+- Do NOT use any other language besides English
+- If the student speaks in another language, ask them in English to speak in English
+- All your responses, corrections, and questions must be in English ONLY
+
+## INTERACTION TYPE
+${interactionTypeText}
+
+## LANGUAGE
+English
+
+Always start with the welcome message and wait for the student's response.`;
+            } else if (promptLanguage === 'ar') {
+                return `# رُوبُوتُ مُحَادَثَةٍ تَعْلِيمِيٌّ لِلْكَلَامِ - ${titleText}
+
+## الدَّوْرُ
+أَنْتَ مُسَاعِدُ مُحَادَثَةٍ رَئِيسِيٌّ يُسَاعِدُ التَّلَامِيذَ عَلَى مُمارَسَةِ الْكَلَامِ وَفْقَ مُسْتَوَاهُمْ (${gem.class}، ${gem.cycle === 'lycee' ? 'الثَّانَوِيَّةُ' : 'الدَّوْرَةُ ' + gem.cycle}).
+
+## الْمَهَمَّةُ
+${missionText}
+
+## رِسَالَةُ التَّرْحِيبِ (لِقَوْلِهَا لِلتِّلْمِيذِ)
+"${welcomeText}"
+
+## الْمَعَارِفُ الْمَطْلُوبَةُ تَطْوِيرُهَا
+${connaissancesList.map(function(k) { return '- ' + k; }).join('\n')}
+
+${correctionStyleText ? '## أُسْلُوبُ التَّصْحِيحِ\n' + correctionStyleText + '\n' : ''}
+## قَوَاعِدُ التَّفَاعُلِ
+١. تَكَلَّمْ بِلُغَةٍ مُنَاسِبَةٍ لِعُمْرِ التِّلْمِيذِ
+٢. اطْرَحْ أَسْئِلَةً قَصِيرَةً وَوَاضِحَةً
+٣. أَعْطِ الْوَقْتَ اللَّازِمَ لِلتِّلْمِيذِ لِلْإِجَابَةِ
+٤. صَحِّحْ بِلُطْفٍ مِنْ خِلَالِ إِعَادَةِ الصِّيَاغَةِ بِشَكْلٍ صَحِيحٍ
+٥. شَجِّعْ وَقَدِّرْ كُلَّ مُسَاعَدَةٍ
+٦. اجْعَلِ التِّلْمِيذَ يَتَكَلَّمُ، لَا تَتَكَلَّمْ كَثِيرًا بِنَفْسِكَ
+٧. كَيِّفْ مُفْرَدَاتِكَ مَعَ مُسْتَوَى الصَّفِّ
+
+## قَيْدُ اللُّغَةِ الْمُهَمُّ جِدًّا
+- تَكَلَّمْ حَصْرِيًّا بِاللُّغَةِ الْعَرَبِيَّةِ الْفُصْحَى فَقَطْ
+- لَا تَسْتَخْدِمْ أَيَّةَ لُغَةٍ أُخْرَى غَيْرَ الْعَرَبِيَّةِ الْفُصْحَى
+- لَا تَسْتَخْدِمْ أَيَّ لَهْجَةٍ عَامِّيَةٍ
+- اسْتَخْدِمِ التَّشْكِيلَ الْكَامِلَ عَلَى جَمِيعِ الْكَلِمَاتِ
+- إِذَا تَكَلَّمَ التِّلْمِيذُ بِلُغَةٍ أُخْرَى، اطْلُبْ مِنْهُ بِالْعَرَبِيَّةِ الْفُصْحَى أَنْ يَتَكَلَّمَ بِالْعَرَبِيَّةِ
+- جَمِيعُ رُدُودِكَ وَتَصْحِيحَاتِكَ وَأَسْئِلَتِكَ تَكُونُ بِالْعَرَبِيَّةِ الْفُصْحَى الْمُشَكَّلَةِ فَقَطْ
+
+## نَوْعُ التَّفَاعُلِ
+${interactionTypeText}
+
+## اللُّغَةُ
+الْعَرَبِيَّةُ الْفُصْحَى مَعَ التَّشْكِيلِ الْكَامِلِ
+
+ابْدَأْ دَائِمًا بِرِسَالَةِ التَّرْحِيبِ وَانْتَظِرْ رَدَّ التِّلْمِيذِ.`;
+            }
+        }
+
+        function displayGems(language) {
+            const grid = document.getElementById('gemsGrid');
+            grid.innerHTML = '';
+
+            currentGems.forEach(function(gem, index) {
+                const card = document.createElement('div');
+                card.className = 'gem-card';
+                card.style.borderLeftColor = getColorForCycle(gem.cycle);
+
+                const displayLanguage = gem.language || language;
+                const titleText = gem.title[displayLanguage] || gem.title;
+                const descriptifText = gem.descriptif[displayLanguage] || gem.descriptif;
+                const missionText = gem.mission[displayLanguage] || gem.mission;
+                const welcomeText = gem.welcomeMessage[displayLanguage] || gem.welcomeMessage;
+
+                const connaissancesList = gem.connaissances[displayLanguage] || gem.connaissances;
+                const connaissancesHtml = connaissancesList.map(function(k) { return '<li>' + k + '</li>'; }).join('');
+
+                const labels = getLabels(displayLanguage);
+                const cycleDisplay = gem.cycle === 'lycee' ? 'Lycée' : 'Cycle ' + gem.cycle;
+
+                card.innerHTML = `
+                    <div class="gem-header">
+                        <div style="flex: 1;">
+                            <div class="gem-title">${titleText}</div>
+                            <div class="gem-badges">
+                                <span class="gem-cycle" style="background: ${getColorForCycle(gem.cycle)}">${cycleDisplay}</span>
+                                <span class="gem-class">${gem.class}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gem-section gem-descriptif">
+                        <div class="gem-section-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            ${labels.descriptif}
+                        </div>
+                        <div class="gem-section-content">${descriptifText}</div>
+                    </div>
+                    <div class="gem-section gem-mission">
+                        <div class="gem-section-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            ${labels.mission}
+                        </div>
+                        <div class="gem-section-content">${missionText}</div>
+                    </div>
+                    <div class="gem-section gem-welcome">
+                        <div class="gem-section-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                            ${labels.welcomeMessage}
+                        </div>
+                        <div class="gem-welcome-message ${displayLanguage === 'ar' ? 'arabic-text' : ''}">"${welcomeText}"</div>
+                    </div>
+                    <div class="gem-section gem-connaissances">
+                        <div class="gem-section-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            ${labels.connaissances}
+                        </div>
+                        <div class="gem-section-content">
+                            <ul>${connaissancesHtml}</ul>
+                        </div>
+                    </div>
+                    <div class="gem-language">
+                        <span>${labels.language}:</span>
+                        <span class="language-badge language-${displayLanguage}">${displayLanguage.toUpperCase()}</span>
+                    </div>
+                    <div class="gem-actions">
+                        <button class="gem-action-btn primary" onclick="showGemDetails(${index}, '${displayLanguage}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            ${labels.viewPrompt}
+                        </button>
+                        <button class="gem-action-btn favorite" onclick="toggleFavorite(${index})">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            ${labels.favorite}
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            document.getElementById('resultsSection').classList.add('active');
+            document.getElementById('resultsCount').textContent = currentGems.length + ' ' + (language === 'fr' ? 'gems créées' : language === 'en' ? 'gems created' : 'جيمز تم إنشاؤها');
+        }
+
+        function getLabels(language) {
+            if (language === 'fr') {
+                return {
+                    cycle: 'Cycle',
+                    descriptif: 'Descriptif',
+                    mission: 'Mission',
+                    connaissances: 'Connaissances requises',
+                    welcomeMessage: 'Message d\'accueil',
+                    viewPrompt: 'Voir le prompt',
+                    favorite: 'Favori',
+                    language: 'Langue'
+                };
+            } else if (language === 'en') {
+                return {
+                    cycle: 'Cycle',
+                    descriptif: 'Description',
+                    mission: 'Mission',
+                    connaissances: 'Required Knowledge',
+                    welcomeMessage: 'Welcome Message',
+                    viewPrompt: 'View Prompt',
+                    favorite: 'Favorite',
+                    language: 'Language'
+                };
+            } else {
+                return {
+                    cycle: 'الدورة',
+                    descriptif: 'الوصف',
+                    mission: 'المهمة',
+                    connaissances: 'المعارف المطلوبة',
+                    welcomeMessage: 'رسالة الترحيب',
+                    viewPrompt: 'عرض الأمر',
+                    favorite: 'مفضل',
+                    language: 'اللغة'
+                };
+            }
+        }
+
+        function updateStats() {
+            const cycles = [];
+            const competencies = [];
+            const themes = [];
+            
+            currentGems.forEach(function(g) {
+                if (cycles.indexOf(g.cycle) === -1) cycles.push(g.cycle);
+                if (competencies.indexOf(g.competency) === -1) competencies.push(g.competency);
+                if (themes.indexOf(g.theme) === -1) themes.push(g.theme);
+            });
+
+            document.getElementById('totalGems').textContent = currentGems.length;
+            document.getElementById('totalCycles').textContent = cycles.length;
+            document.getElementById('totalCompetencies').textContent = competencies.length;
+            document.getElementById('totalThemes').textContent = themes.length;
+        }
+
+        function showGemDetails(index, language) {
+            const gem = currentGems[index];
+            const modal = document.getElementById('gemModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const promptPreview = document.getElementById('promptPreview');
+
+            const displayLanguage = gem.language || language;
+            const prompt = createGeminiPrompt(gem, displayLanguage);
+            const titleText = gem.title[displayLanguage] || gem.title;
+
+            currentModalPrompt = prompt;
+            modalTitle.textContent = titleText + ' - ' + (displayLanguage === 'fr' ? 'Prompt complet' : displayLanguage === 'en' ? 'Complete Prompt' : 'الأمر الكامل');
+            promptPreview.textContent = prompt;
+            
+            if (displayLanguage === 'ar') {
+                promptPreview.classList.add('arabic');
+            } else {
+                promptPreview.classList.remove('arabic');
+            }
+
+            modal.classList.add('active');
+        }
+
+        function copyFromModal() {
+            if (currentModalPrompt) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(currentModalPrompt).then(function() {
+                        showToast('Prompt copié avec succès !', 'success');
+                    }).catch(function(err) {
+                        console.error('Erreur clipboard:', err);
+                        fallbackCopy(currentModalPrompt);
+                    });
+                } else {
+                    fallbackCopy(currentModalPrompt);
+                }
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Prompt copié avec succès !', 'success');
+            } catch (err) {
+                showToast('Erreur lors de la copie', '');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function closeModal() {
+            document.getElementById('gemModal').classList.remove('active');
+        }
+
+        function exportAllGems() {
+            const language = document.getElementById('languageFilter').value;
+            let allPrompts = '';
+            
+            currentGems.forEach(function(gem, index) {
+                const displayLanguage = gem.language || language;
+                allPrompts += createGeminiPrompt(gem, displayLanguage);
+                if (index < currentGems.length - 1) {
+                    allPrompts += '\n\n' + '='.repeat(50) + '\n\n';
+                }
+            });
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(allPrompts).then(function() {
+                    const msg = language === 'fr'
+                        ? 'Tous les prompts copiés ! (' + currentGems.length + ' gems)'
+                        : language === 'en'
+                        ? 'All prompts copied! (' + currentGems.length + ' gems)'
+                        : 'تم نسخ جميع الأوامر! (' + currentGems.length + ' جيمز)';
+                    showToast(msg, 'success');
+                }).catch(function() {
+                    showToast('Erreur lors de la copie', '');
+                });
+            } else {
+                fallbackCopy(allPrompts);
+            }
+        }
+
+        function toggleFavorite(index) {
+            const gem = currentGems[index];
+            const displayLanguage = gem.language || document.getElementById('languageFilter').value;
+            const gemId = gem.cycle + '-' + gem.class + '-' + (gem.title[displayLanguage] || gem.title);
+            
+            const btn = event.currentTarget;
+            
+            if (favorites.indexOf(gemId) === -1) {
+                favorites.push(gemId);
+                btn.classList.add('active');
+                showToast('Ajouté aux favoris!', 'success');
+            } else {
+                favorites = favorites.filter(function(id) { return id !== gemId; });
+                btn.classList.remove('active');
+                showToast('Retiré des favoris', '');
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast active ' + type;
+            
+            setTimeout(function() {
+                toast.classList.remove('active');
+            }, 3000);
+        }
+
+        document.getElementById('gemModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        document.getElementById('cycleFilter').addEventListener('change', function() {
+            const cycleValue = this.value;
+            const classSelect = document.getElementById('classFilter');
+            
+            let classOptions = {};
+            
+            if (cycleValue === 'lycee') {
+                classOptions = {
+                    'lycee': ['2nde', '1ere', 'terminale']
+                };
+            } else {
+                classOptions = {
+                    '': 'all',
+                    '1': ['PS', 'MS', 'GS'],
+                    '2': ['CP', 'CE1', 'CE2'],
+                    '3': ['CM1', 'CM2', '6eme'],
+                    '4': ['5eme', '4eme', '3eme']
+                };
+            }
+
+            classSelect.innerHTML = '<option value="">Toutes les classes</option>';
+            
+            const key = cycleValue || '';
+            if (classOptions[key] && classOptions[key] !== 'all') {
+                const classLabels = {
+                    'PS': 'Petite Section (3-4 ans)',
+                    'MS': 'Moyenne Section (4-5 ans)',
+                    'GS': 'Grande Section (5-6 ans)',
+                    'CP': 'Cours Préparatoire',
+                    'CE1': 'Cours Élémentaire 1',
+                    'CE2': 'Cours Élémentaire 2',
+                    'CM1': 'Cours Moyen 1',
+                    'CM2': 'Cours Moyen 2',
+                    '6eme': '6ème',
+                    '5eme': '5ème',
+                    '4eme': '4ème',
+                    '3eme': '3ème',
+                    '2nde': 'Seconde',
+                    '1ere': 'Première',
+                    'terminale': 'Terminale'
+                };
+
+                classOptions[key].forEach(function(cls) {
+                    const option = document.createElement('option');
+                    option.value = cls;
+                    option.textContent = classLabels[cls];
+                    classSelect.appendChild(option);
+                });
+            }
+        });
+
+        document.getElementById('generateBtn').addEventListener('click', generateGems);
+
+        window.addEventListener('load', function() {
+            document.getElementById('cycleFilter').value = '';
+            document.getElementById('classFilter').value = '';
+            document.getElementById('competencyFilter').value = '';
+            document.getElementById('themeFilter').value = '';
+            document.getElementById('languageFilter').value = 'fr';
+            document.getElementById('quantityFilter').value = '5';
+        });
+    </script>
+</body>
+</html>
+
